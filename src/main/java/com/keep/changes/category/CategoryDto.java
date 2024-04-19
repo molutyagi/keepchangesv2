@@ -17,7 +17,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class CategoryDto {
 
-	private long id;
+	private Long id;
 
 	@NotEmpty
 	private String categoryName;
@@ -25,9 +25,15 @@ public class CategoryDto {
 	@NotEmpty
 	private String categoryDescription;
 
-	@NotEmpty
+//	@NotEmpty
 	private String categorySvg;
 
 	private Set<FundraiserDto> fundraisers = new HashSet<>();
+
+	@Override
+	public String toString() {
+		return "CategoryDto [id=" + id + ", categoryName=" + categoryName + ", categoryDescription="
+				+ categoryDescription + ", categorySvg=" + categorySvg + "]";
+	}
 
 }

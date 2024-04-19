@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -24,14 +25,11 @@ public class FileServiceImpl implements FileService {
 
 		String filePath = path + File.separator + newFileName;
 
-		System.out.println("path = " + path);
-		System.out.println("filepath = " + filePath);
 		File f = new File(path);
 		if (!f.exists()) {
 			f.mkdir();
 		}
-		System.out.println("done");
-		Files.copy(file.getInputStream(), Paths.get(filePath));
+		Files.copy(file.getInputStream(), Paths.get(filePath), StandardCopyOption.REPLACE_EXISTING);
 		return newFileName;
 	}
 
@@ -42,15 +40,15 @@ public class FileServiceImpl implements FileService {
 		return inputStream;
 	}
 
-	public boolean deleleFile(String path, String fileName) throws IOException {
+	public boolean deleteFile(String path, String fileName) throws IOException {
 
 		boolean deleted = false;
 
 		String fullPath = path + File.separator + fileName;
 		Path filePath = Paths.get(fullPath);
 		try {
-			Files.delete(filePath);
-			deleted = true;
+			boolean deleteIfExists = Files.deleteIfExists(filePath);
+			deleted = deleteIfExists;
 		} catch (IOException e) {
 			throw new IOException("Could not delete File", e);
 		}

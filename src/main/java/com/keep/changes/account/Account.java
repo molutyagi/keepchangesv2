@@ -29,13 +29,13 @@ public class Account {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private Long id;
 
 	@Column(columnDefinition = "varchar(30)", nullable = false, unique = true)
 	private String accountNumber;
 
 	@Column(columnDefinition = "varchar(20)", nullable = false)
-	private String idfc;
+	private String ifsc;
 
 	@Column(columnDefinition = "varchar(50)", nullable = false)
 	private String bankName;
@@ -52,5 +52,16 @@ public class Account {
 
 	@OneToMany(mappedBy = "account")
 	private Set<Fundraiser> associatedFundraisers = new HashSet<>();
+
+	public void putUpdateAccount(Long id, String accountNumber, String ifsc, String bankName, String branch,
+			String holderName) {
+
+		this.id = id;
+		this.accountNumber = accountNumber;
+		this.ifsc = ifsc;
+		this.bankName = bankName;
+		this.branch = branch;
+		this.holderName = holderName;
+	}
 
 }

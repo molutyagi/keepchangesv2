@@ -2,6 +2,7 @@ package com.keep.changes.user;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.keep.changes.exception.ApiException;
 import com.keep.changes.file.FileService;
 import com.keep.changes.payload.response.ApiResponse;
 
@@ -49,6 +52,12 @@ public class UserController {
 	@Value("${user-cover.images}")
 	private String coverImagePath;
 
+	@Value("${user-profile.default}")
+	private String DEFAULT_PROFILE_IMAGE;
+
+	@Value("${user-profile.default}")
+	private String DEFAULT_COVER_IMAGE;
+
 //	POST Mapping / Add user
 	@PostMapping("add")
 	public ResponseEntity<UserDto> createUser(@Valid @RequestBody UserDto userDto) {
@@ -60,11 +69,8 @@ public class UserController {
 //	Update User
 //	PUT Update user
 	@PutMapping("user/update_{uId}")
-	public ResponseEntity<?> putUpdateUser(@Valid @PathVariable Long uId, @RequestBody UserDto userDto) {
-
-		if (this.authenticateUser(uId) == false) {
-			return ResponseEntity.ok(new ApiResponse("Unauthorized request!!", false));
-		}
+	@PreAuthorize("@userController.authenticatedUser(#uId, authentication.principal.id, hasRole('ADMIN'))")
+	public ResponseEntity<?> putUpdateUser(@PathVariable Long uId, @RequestBody UserDto userDto) {
 
 		UserDto updatedUser = this.userService.putUpdateUser(uId, userDto);
 		return ResponseEntity.ok(updatedUser);
@@ -72,13 +78,11 @@ public class UserController {
 
 //	Patch update user
 	@PatchMapping("user/update_{uId}")
+	@PreAuthorize("@userController.authenticatedUser(#uId, authentication.principal.id, hasRole('ADMIN'))")
 	public ResponseEntity<?> patchUpdateUser(@Valid @PathVariable Long uId, @RequestBody UserDto partialUser) {
 
-		if (this.authenticateUser(uId) == false) {
-			return ResponseEntity.ok(new ApiResponse("Unauthorized request!!", false));
-		}
-
 		UserDto patchedUser = this.userService.patchUpdateUser(uId, partialUser);
+
 		return ResponseEntity.ok(patchedUser);
 	}
 
@@ -86,11 +90,8 @@ public class UserController {
 	@DeleteMapping("user/delete_{uId}")
 	public ResponseEntity<?> deleteUser(@PathVariable Long uId) {
 
-		if (this.authenticateUser(uId) == false) {
-			return ResponseEntity.ok(new ApiResponse("Unauthorized request!!", false));
-		}
-
 		this.userService.deleteUser(uId);
+
 		return ResponseEntity.ok(new ApiResponse("User Deleted Successfully.", true));
 	}
 
@@ -132,139 +133,117 @@ public class UserController {
 	}
 
 //	Upload User Profile Image
-	@PostMapping(value = { "user_{uId}/profile-image", "user_{uId}/profile-image/" })
+	@PatchMapping(value = { "user_{uId}/profile-image", "user_{uId}/profile-image/" })
+	@PreAuthorize("@userController.authenticatedUser(#uId, authentication.principal.id, hasRole('ADMIN'))")
 	public ResponseEntity<?> uploadProfileImage(@Valid @PathVariable Long uId,
 			@RequestParam("image") MultipartFile image) throws IOException {
 
-		if (this.authenticateUser(uId) == false) {
-			return ResponseEntity.ok(new ApiResponse("Unauthorized user!!", false));
-		}
-
-		UserDto userDto = this.userService.getUserById(uId);
-		System.out.println("1.----------");
-		if (userDto.getDisplayImage() != null && !userDto.getDisplayImage().equals("")
-				&& !userDto.getDisplayImage().equals("default.png")) {
-			System.out.println("shouldnt be here");
-			boolean isDeleted;
-			try {
-				isDeleted = this.fileService.deleleFile(profileImagePath, userDto.getDisplayImage());
-			} catch (IOException e) {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-						.body("1 OOPS!! Something went wrong. Could not update profile image.");
-			}
-
-			if (isDeleted == false) {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-						.body("2 OOPS!! Something went wrong. Could not update profile image.");
-			}
-		}
-
+		UserDto userDto = new UserDto();
+		UserDto updatedUser;
 		String fileName = null;
+
+//		save new image in directory
 		try {
-			System.out.println("here");
 			fileName = this.fileService.uploadImage(profileImagePath, image);
-			System.out.println("completed");
 		} catch (IOException e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("3 OOPS!! Something went wrong. Could not update profile image.");
+					.body(" OOPS!! Something went wrong. Could not update profile image.");
 		}
-		userDto.setDisplayImage(fileName);
 
-		return ResponseEntity.ok(this.userService.putUpdateUser(uId, userDto));
+//		save in database
+		userDto.setDisplayImage(fileName);
+		try {
+			updatedUser = this.userService.patchUpdateUser(uId, userDto);
+		} catch (Exception e) {
+			this.fileService.deleteFile(profileImagePath, fileName);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(" OOPS!! Something went wrong. Could not update profile image.");
+		}
+
+		return ResponseEntity.ok(updatedUser);
 	}
 
 //	Delete Profile Image
 	@DeleteMapping(value = { "user_{uId}/profile-image", "user_{uId}/profile-image/" })
+	@PreAuthorize("@userController.authenticatedUser(#uId, authentication.principal.id, hasRole('ADMIN'))")
 	public ResponseEntity<ApiResponse> deleteUserProfileImage(@PathVariable Long uId) throws IOException {
 
-		if (this.authenticateUser(uId) == false) {
-			return ResponseEntity.ok(new ApiResponse("Unauthorized request!!", false));
+		if (!this.userService.deleteProfileImage(uId)) {
+			ResponseEntity.ok(new ApiResponse("Profile does not exists.", false));
 		}
 
-		UserDto userDto = this.userService.getUserById(uId);
-		if (userDto.getDisplayImage() != null && !userDto.getDisplayImage().equals("")
-				&& !userDto.getDisplayImage().equals("default.png")) {
-			boolean isDeleted;
-			try {
-				isDeleted = this.fileService.deleleFile(profileImagePath, userDto.getDisplayImage());
-			} catch (IOException e) {
-				return ResponseEntity.badRequest()
-						.body(new ApiResponse("OOPS!! Something went wrong. Could not update profile image.", false));
-			}
-
-			if (isDeleted == false) {
-				return ResponseEntity.badRequest()
-						.body(new ApiResponse("OOPS!! Something went wrong. Could not update profile image.", false));
-			}
-		}
-		userDto.setDisplayImage("default.png");
-		this.userService.putUpdateUser(uId, userDto);
 		return ResponseEntity.ok(new ApiResponse("Profile Image Deleted Successfully.", true));
 	}
 
 //	Get user profile image
 	@GetMapping(value = { "user_{uId}/profile-image/{imageName}", "user_{uId}/profile-image/{imageName}/" })
-
 	public void downloadProfileImage(@Valid @PathVariable Long uId, @PathVariable String imageName,
 			HttpServletResponse res) throws IOException {
-		InputStream is = this.fileService.getResource(profileImagePath, imageName);
+
+		InputStream is;
+
+		try {
+			is = this.fileService.getResource(profileImagePath, imageName);
+		} catch (Exception e) {
+			throw new ApiException("OOPS!! Something went wrong. Could not get profile image.", HttpStatus.BAD_REQUEST,
+					false);
+		}
+
 		res.setContentType(MediaType.IMAGE_JPEG_VALUE);
 		StreamUtils.copy(is, res.getOutputStream());
 	}
 
 //	Upload User Cover Image
-	@PostMapping(value = { "user_{uId}/cover-image", "user_{uId}/cover-image/" })
-	public ResponseEntity<?> uploadCoverImage(@Valid @PathVariable Long uId, @RequestParam("image") MultipartFile image)
-			throws IOException {
+	@PatchMapping(value = { "user_{uId}/cover-image", "user_{uId}/cover-image/" })
+	@PreAuthorize("@userController.authenticatedUser(#uId, authentication.principal.id, hasRole('ADMIN'))")
+	public ResponseEntity<?> uploadCoverImage(@Valid @PathVariable Long uId,
+			@RequestParam("image") MultipartFile image) {
 
-		if (this.authenticateUser(uId) == false) {
-			return ResponseEntity.ok(new ApiResponse("Unauthorized request!!", false));
-		}
+		UserDto userDto = new UserDto();
+		UserDto updatedUser;
+		String fileName = null;
 
-		UserDto userDto = this.userService.getUserById(uId);
-
-		if (userDto.getCoverImage() != null && !userDto.getCoverImage().equals("")
-				&& !userDto.getCoverImage().equals("default.png")) {
-			boolean isDeleted = this.fileService.deleleFile(coverImagePath, userDto.getCoverImage());
-
-			if (isDeleted == false) {
-				return ResponseEntity.badRequest()
-						.body(new ApiResponse("OOPS!! Something went wrong. Could not update cover image.", false));
+//		save new image in directory
+		try {
+			fileName = this.fileService.uploadImage(coverImagePath, image);
+		} catch (IOException e) {
+			try {
+				this.fileService.deleteFile(coverImagePath, fileName);
+			} catch (IOException e1) {
+				throw new ApiException("OOPS!! Something went wrong. Could not update cover image.",
+						HttpStatus.BAD_REQUEST, false);
 			}
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body(" OOPS!! Something went wrong. Could not update profile image.");
 		}
 
-		String fileName = this.fileService.uploadImage(coverImagePath, image);
+//		save in database
 		userDto.setCoverImage(fileName);
+		try {
+			updatedUser = this.userService.patchUpdateUser(uId, userDto);
+		} catch (Exception e) {
+			try {
+				this.fileService.deleteFile(coverImagePath, fileName);
+			} catch (IOException e1) {
+				throw new ApiException("OOPS!! Something went wrong. Could not update profile image.",
+						HttpStatus.BAD_REQUEST, false);
+			}
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(" OOPS!! Something went wrong. Could not update profile image.");
+		}
 
-		return ResponseEntity.ok(this.userService.putUpdateUser(uId, userDto));
+		return ResponseEntity.ok(updatedUser);
 	}
 
 //	Delete Cover Image
 	@DeleteMapping(value = { "user_{uId}/cover-image", "user_{uId}/cover-image/" })
-	public ResponseEntity<ApiResponse> deleteUserCoverImage(@PathVariable Long uId) throws IOException {
+	@PreAuthorize("@userController.authenticatedUser(#uId, authentication.principal.id, hasRole('ADMIN'))")
+	public ResponseEntity<ApiResponse> deleteUserCoverImage(@PathVariable Long uId) {
 
-		if (this.authenticateUser(uId) == false) {
-			return ResponseEntity.ok(new ApiResponse("Unauthorized request!!", false));
+		if (!this.userService.deleteCoverImage(uId)) {
+			ResponseEntity.ok(new ApiResponse("Cover image does not exists.", false));
 		}
 
-		UserDto userDto = this.userService.getUserById(uId);
-		if (userDto.getCoverImage() != null && !userDto.getCoverImage().equals("")
-				&& !userDto.getCoverImage().equals("default.png")) {
-			boolean isDeleted;
-			try {
-				isDeleted = this.fileService.deleleFile(coverImagePath, userDto.getCoverImage());
-			} catch (IOException e) {
-				return ResponseEntity.badRequest()
-						.body(new ApiResponse("OOPS!! Something went wrong. Could not update cover image.", false));
-			}
-
-			if (isDeleted == false) {
-				return ResponseEntity.badRequest()
-						.body(new ApiResponse("OOPS!! Something went wrong. Could not update cover image.", false));
-			}
-		}
-		userDto.setCoverImage("default.png");
-		this.userService.putUpdateUser(uId, userDto);
 		return ResponseEntity.ok(new ApiResponse("Cover Image Deleted Successfully.", true));
 	}
 
@@ -272,27 +251,36 @@ public class UserController {
 	@GetMapping(value = { "user_{uId}/cover-image/{imageName}", "user_{uId}/cover-image/{imageName}/" })
 	public void downloadcoverImage(@PathVariable Long uId, @PathVariable String imageName, HttpServletResponse res)
 			throws IOException {
-		InputStream is = this.fileService.getResource(coverImagePath, imageName);
+
+		InputStream is;
+
+		try {
+			is = this.fileService.getResource(coverImagePath, imageName);
+		} catch (Exception e) {
+			throw new ApiException("OOPS!! Something went wrong. Could not get cover image.", HttpStatus.BAD_REQUEST,
+					false);
+		}
+
 		res.setContentType(MediaType.IMAGE_JPEG_VALUE);
 		StreamUtils.copy(is, res.getOutputStream());
 	}
 
-//	Post File And User Details in a single Request
+//	Update File And User Details in a single Request
 	@PatchMapping(value = { "user/update-profile_{uId}", "user/update-profile_{uId}/" })
+	@PreAuthorize("@userController.authenticatedUser(#uId, authentication.principal.id, hasRole('ADMIN'))")
 	public ResponseEntity<?> updateUserAndImage(@Valid @PathVariable Long uId,
 			@RequestParam(value = "profileImage", required = false) MultipartFile profileImage,
 			@RequestParam(value = "coverImage", required = false) MultipartFile coverImage,
 			@RequestParam(value = "userData", required = false) String userData) {
 
-		if (this.authenticateUser(uId) == false) {
-			return ResponseEntity.ok(new ApiResponse("Unauthorized request!!", false));
-		}
-
 		UserDto userDto = new UserDto();
+		UserDto updatedUser;
+		String profileImageName = null;
+		String coverImageName = null;
 
 		if (userData != null) {
 			try {
-				userDto = objectMapper.readValue(userData, UserDto.class);
+				userDto = this.objectMapper.readValue(userData, UserDto.class);
 			} catch (JsonProcessingException e) {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Request!");
 			}
@@ -300,37 +288,97 @@ public class UserController {
 
 		if (profileImage != null) {
 			try {
-				String profileImageName = this.fileService.uploadImage(this.profileImagePath, profileImage);
-				userDto.setDisplayImage(profileImageName);
+				profileImageName = this.fileService.uploadImage(profileImagePath, profileImage);
 			} catch (IOException e) {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Could not update user details. Try again.");
+				throw new ApiException("OOPS!! Something went wrong. Could not update profile.", HttpStatus.BAD_REQUEST,
+						false);
 			}
+			userDto.setDisplayImage(profileImageName);
 		}
 
 		if (coverImage != null) {
 			try {
-				String coverImageName = this.fileService.uploadImage(this.coverImagePath, coverImage);
-				userDto.setCoverImage(coverImageName);
+				coverImageName = this.fileService.uploadImage(coverImagePath, coverImage);
 			} catch (IOException e) {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Could not update user details. Try again.");
+				throw new ApiException("OOPS!! Something went wrong. Could not update profile.", HttpStatus.BAD_REQUEST,
+						false);
 			}
+			userDto.setCoverImage(coverImageName);
 		}
 
-		return ResponseEntity.ok(this.userService.patchUpdateUser(uId, userDto));
+		try {
+			updatedUser = this.userService.patchUpdateUser(uId, userDto);
+		} catch (Exception e) {
+			try {
+				this.fileService.deleteFile(profileImagePath, profileImageName);
+			} catch (IOException e1) {
+				throw new ApiException("OOPS!! Something went wrong. Could not update profile.", HttpStatus.BAD_REQUEST,
+						false);
+			}
+			try {
+				this.fileService.deleteFile(coverImagePath, coverImageName);
+			} catch (IOException e1) {
+				throw new ApiException("OOPS!! Something went wrong. Could not update profile.", HttpStatus.BAD_REQUEST,
+						false);
+			}
+			throw new ApiException("OOPS!! Something went wrong. Could not update profile.", HttpStatus.BAD_REQUEST,
+					false);
+		}
+
+		return ResponseEntity.ok(updatedUser);
 	}
 
 //	check if correct user is asking to change resources
-	private boolean authenticateUser(long uId) {
-//		String loggedInUser = SecurityContextHolder	.getContext()
-//													.getAuthentication()
-//													.getName();
-//
-//		UserDto user = this.userService.getUserById(uId);
-//
-//		if (!user	.getEmail()
-//					.equals(loggedInUser)) {
-//			return false;
-//		}
-		return true;
+	public boolean authenticatedUser(long uId, long cUId, boolean isAdmin) throws AccessDeniedException {
+		if (uId == cUId || isAdmin) {
+			return true;
+		}
+		throw new ApiException("You are not authorized to perform this action.", HttpStatus.FORBIDDEN, false);
 	}
+
+////	delete if previous profile exists
+//	private boolean hasPreviousProfile(UserDto userDto) {
+//		if (userDto.getDisplayImage() != null && !userDto.getDisplayImage().equals("")
+//				&& !userDto.getDisplayImage().equals(this.DEFAULT_PROFILE_IMAGE)) {
+//
+//			boolean isDeleted;
+//
+//			try {
+//				isDeleted = this.fileService.deleteFile(profileImagePath, userDto.getDisplayImage());
+//			} catch (IOException e) {
+//				throw new ApiException("OOPS!! Something went wrong. Could not update profile image.",
+//						HttpStatus.BAD_REQUEST, false);
+//			}
+//
+//			if (isDeleted == false) {
+//				throw new ApiException("OOPS!! Something went wrong. Could not update profile image.",
+//						HttpStatus.BAD_REQUEST, false);
+//			}
+//		}
+//		return false;
+//	}
+//
+////	delete if previous cover exists
+//	private boolean hasPreviousCover(UserDto userDto) {
+//
+//		if (userDto.getCoverImage() != null && !userDto.getCoverImage().equals("")
+//				&& !userDto.getCoverImage().equals(this.DEFAULT_COVER_IMAGE)) {
+//
+//			boolean isDeleted;
+//
+//			try {
+//				isDeleted = this.fileService.deleteFile(profileImagePath, userDto.getDisplayImage());
+//			} catch (IOException e) {
+//				throw new ApiException("OOPS!! Something went wrong. Could not update cover image.",
+//						HttpStatus.BAD_REQUEST, false);
+//			}
+//
+//			if (isDeleted == false) {
+//				throw new ApiException("OOPS!! Something went wrong. Could not update cover image.",
+//						HttpStatus.BAD_REQUEST, false);
+//			}
+//		}
+//		return false;
+//	}
+
 }

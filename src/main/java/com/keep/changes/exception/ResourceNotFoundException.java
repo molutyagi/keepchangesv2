@@ -1,4 +1,4 @@
-package com.keep.changes.user.exception;
+package com.keep.changes.exception;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -21,14 +21,13 @@ public class ResourceNotFoundException extends RuntimeException {
 		this.fieldValue = fieldValue;
 	}
 
-	public ResourceNotFoundException(String resourceName, String fieldName,
-			String stringFieldValue) {
+	public ResourceNotFoundException(String resourceName, String fieldName, String stringFieldValue) {
 
-		super(String.format("%s not found with %s : %s", resourceName, fieldName,
-				stringFieldValue));
+		super(String.format("%s not found with %s : %s", resourceName, fieldName, stringFieldValue));
 
 		this.resourceName = resourceName;
 		this.fieldName = fieldName;
 		this.stringFieledValue = stringFieldValue;
 	}
+
 }

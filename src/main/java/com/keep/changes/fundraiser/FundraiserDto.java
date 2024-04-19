@@ -67,6 +67,9 @@ public class FundraiserDto {
 	private boolean isActive;
 
 	@JsonProperty(value = "status", access = JsonProperty.Access.READ_ONLY)
+	private AdminApproval approval;
+
+	@JsonProperty(value = "status", access = JsonProperty.Access.READ_ONLY)
 	private FundraiserStatus status;
 
 	@NotEmpty

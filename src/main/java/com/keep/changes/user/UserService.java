@@ -16,6 +16,12 @@ public interface UserService {
 //	Delete User
 	void deleteUser(Long uId);
 
+//	delete profile image
+	boolean deleteProfileImage(long uId);
+
+//	delete cover image
+	boolean deleteCoverImage(long uId);
+
 //	Get Users
 	UserDto getUserById(Long uId);
 

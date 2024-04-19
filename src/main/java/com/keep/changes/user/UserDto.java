@@ -5,11 +5,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.keep.changes.account.AccountDto;
-import com.keep.changes.address.AddressDto;
-import com.keep.changes.donation.DonationDto;
-import com.keep.changes.fundraiser.FundraiserDto;
-import com.keep.changes.pan.PanDto;
 import com.keep.changes.role.RoleDto;
 
 import jakarta.validation.constraints.Email;
@@ -25,7 +20,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class UserDto {
-
+	@JsonProperty(value = "id", access = JsonProperty.Access.READ_ONLY)
 	private Long id;
 
 	@NotEmpty
@@ -59,14 +54,14 @@ public class UserDto {
 
 	private Set<RoleDto> roles = new HashSet<>();
 
-	private AddressDto address;
+//	private AddressDto address;
 
-	private PanDto pan;
+//	private PanDto pan;
 
-	private Set<AccountDto> accounts = new HashSet<>();
+//	private Set<AccountDto> accounts = new HashSet<>();
 
-	private Set<FundraiserDto> fundraisers = new HashSet<>();
+//	private Set<FundraiserDto> fundraisers = new HashSet<>();
 
-	private Set<DonationDto> donationDtos = new HashSet<>();
+//	private Set<DonationDto> donationDtos = new HashSet<>();
 
 }

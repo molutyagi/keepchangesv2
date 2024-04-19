@@ -1,11 +1,17 @@
 package com.keep.changes.user;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import com.keep.changes.account.Account;
 import com.keep.changes.address.Address;
@@ -39,7 +45,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public class User {
+public class User implements UserDetails {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -98,14 +104,8 @@ public class User {
 	@OneToMany(mappedBy = "donor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private Set<Donation> donations = new HashSet<>();
 
-	public void setUpdateUser(long id,
-			String name,
-			String email,
-			String password,
-			String phone,
-			String displayImage,
-			String coverImage,
-			String about) {
+	public void setUpdateUser(long id, String name, String email, String password, String phone, String displayImage,
+			String coverImage, String about) {
 
 		this.id = id;
 		this.name = name;
@@ -119,12 +119,49 @@ public class User {
 
 	@Override
 	public String toString() {
-		return "User [id=" + id + ", name=" + name + ", email=" + email + ", password=" + password
-				+ ", phone=" + phone + ", displayImage=" + displayImage + ", coverImage="
-				+ coverImage + ", about=" + about + ", registerTime=" + registerTime
-				+ ", lastUpdateTime=" + lastUpdateTime + ", roles=" + roles + ", address=" + address
-				+ ", pan=" + pan + ", accounts=" + accounts + ", fundraisers=" + fundraisers
+		return "User [id=" + id + ", name=" + name + ", email=" + email + ", password=" + password + ", phone=" + phone
+				+ ", displayImage=" + displayImage + ", coverImage=" + coverImage + ", about=" + about
+				+ ", registerTime=" + registerTime + ", lastUpdateTime=" + lastUpdateTime + ", roles=" + roles
+				+ ", address=" + address + ", pan=" + pan + ", accounts=" + accounts + ", fundraisers=" + fundraisers
 				+ ", donations=" + donations + "]";
+	}
+
+	@Override
+	public Collection<? extends GrantedAuthority> getAuthorities() {
+		List<SimpleGrantedAuthority> auth = this.roles.stream()
+				.map((role) -> new SimpleGrantedAuthority(role.getRoleName())).collect(Collectors.toList());
+
+		return auth;
+	}
+
+	@Override
+	public String getUsername() {
+		// TODO Auto-generated method stub
+		return this.email;
+	}
+
+	@Override
+	public boolean isAccountNonExpired() {
+		// TODO Auto-generated method stub
+		return true;
+	}
+
+	@Override
+	public boolean isAccountNonLocked() {
+		// TODO Auto-generated method stub
+		return true;
+	}
+
+	@Override
+	public boolean isCredentialsNonExpired() {
+		// TODO Auto-generated method stub
+		return true;
+	}
+
+	@Override
+	public boolean isEnabled() {
+		// TODO Auto-generated method stub
+		return true;
 	}
 
 }

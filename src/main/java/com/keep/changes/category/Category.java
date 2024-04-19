@@ -27,7 +27,7 @@ public class Category {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private Long id;
 
 	@Column(columnDefinition = "varchar(30)", nullable = false, unique = true)
 	private String categoryName;
@@ -36,9 +36,23 @@ public class Category {
 	private String categoryDescription;
 
 	@Column(columnDefinition = "varchar(100)", nullable = false)
-	private String categorySvg;
+	private String categorySvg = "default.png";
 
 	@OneToMany(mappedBy = "category", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private Set<Fundraiser> fundraisers = new HashSet<>();
+
+	public void putUpdateCategory(long id, String categoryName, String categoryDescription, String categorySvg) {
+
+		this.id = id;
+		this.categoryName = categoryName;
+		this.categoryDescription = categoryDescription;
+		this.categorySvg = categorySvg;
+	}
+
+	@Override
+	public String toString() {
+		return "Category [id=" + id + ", categoryName=" + categoryName + ", categoryDescription=" + categoryDescription
+				+ ", categorySvg=" + categorySvg + "]";
+	}
 
 }

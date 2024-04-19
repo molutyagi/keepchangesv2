@@ -4,7 +4,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.keep.changes.fundraiser.Fundraiser;
+import com.keep.changes.fundraiser.FundraiserDto;
 import com.keep.changes.user.User;
+import com.keep.changes.user.UserDto;
 
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
@@ -18,13 +20,13 @@ import lombok.Setter;
 @Setter
 public class AccountDto {
 
-	private long id;
+	private Long id;
 
 	@NotEmpty
 	private String accountNumber;
 
 	@NotEmpty
-	private String idfc;
+	private String ifsc;
 
 	@NotEmpty
 	private String bankName;
@@ -36,8 +38,8 @@ public class AccountDto {
 	private String holderName;
 
 //	@NotEmpty
-	private User holdingEntity;;
+	private UserDto holdingEntity;
 
-	private Set<Fundraiser> associatedFundraiser = new HashSet<>();
+//	private Set<FundraiserDto> associatedFundraiser = new HashSet<>();
 
 }

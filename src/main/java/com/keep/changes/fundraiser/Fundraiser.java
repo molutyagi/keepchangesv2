@@ -88,6 +88,9 @@ public class Fundraiser {
 	private boolean isActive;
 
 	@Enumerated(EnumType.STRING)
+	private AdminApproval approval;
+
+	@Enumerated(EnumType.STRING)
 	private FundraiserStatus status;
 
 	@ManyToOne
@@ -113,5 +116,20 @@ public class Fundraiser {
 
 	@OneToMany(mappedBy = "fundraiser", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private Set<Donation> donations = new HashSet<>();
+
+	public void putUpdateFundraiser(long id, String fundraiserTitle, String fundraiserDescription, String cause,
+			double raiseGoal, String email, String phone, Date endDate, String displayPhoto, String coverPhoto) {
+
+		this.id = id;
+		this.fundraiserTitle = fundraiserTitle;
+		this.fundraiserDescription = fundraiserDescription;
+		this.cause = cause;
+		this.raiseGoal = raiseGoal;
+		this.email = email;
+		this.phone = phone;
+		this.endDate = endDate;
+		this.displayPhoto = displayPhoto;
+		this.coverPhoto = coverPhoto;
+	}
 
 }

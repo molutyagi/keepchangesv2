@@ -21,7 +21,7 @@ public class AuthController {
 	private AuthenticationService authenticationService;
 
 	@PostMapping("login")
-	public ResponseEntity<AuthenticationResponse> login(@RequestBody AuthenticationRequest authenticationRequest) {
+	public ResponseEntity<AuthenticationResponse> login(@Valid @RequestBody AuthenticationRequest authenticationRequest) {
 
 		AuthenticationResponse token = null;
 		try {

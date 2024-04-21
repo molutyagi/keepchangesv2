@@ -75,7 +75,7 @@ public class FundraiserDto {
 	@NotEmpty
 	private CategoryDto category;
 
-	@JsonProperty(value = "postedBy", access = JsonProperty.Access.READ_ONLY)
+//	@JsonProperty(value = "postedBy", access = JsonProperty.Access.READ_ONLY)
 	private UserDto postedBy;
 
 	private Set<PhotoDto> photos;

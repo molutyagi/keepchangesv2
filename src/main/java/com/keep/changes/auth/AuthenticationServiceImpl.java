@@ -8,7 +8,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -77,7 +76,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 	public AuthenticationResponse login(AuthenticationRequest userRequest) throws AuthenticationException {
 
 		try {
-			Authentication authenticate = this.authenticationManager.authenticate(
+			this.authenticationManager.authenticate(
 					new UsernamePasswordAuthenticationToken(userRequest.getUsername(), userRequest.getPassword()));
 		} catch (BadCredentialsException e) {
 			throw new ApiException("Invalid Password. Enter correct password.", HttpStatus.BAD_REQUEST, false);

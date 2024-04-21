@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -11,6 +12,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import com.keep.changes.exception.ApiException;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
@@ -31,8 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	private final UserDetailsServiceImpl detailsServiceImpl;
 
 	@Override
-	protected void doFilterInternal(@NonNull HttpServletRequest request,
-			@NonNull HttpServletResponse response,
+	protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
 			@NonNull FilterChain filterChain) throws ServletException, IOException {
 
 //		1. Get Token
@@ -54,39 +56,43 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 //		Get email / username from token
 		try {
 			userName = this.jwtService.extractUsernameFromToken(token);
+			System.out.println("username");
+			if (userName != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-			if (userName != null && SecurityContextHolder	.getContext()
-															.getAuthentication() == null) {
-
+				System.out.println("here");
 				UserDetails userDetails = this.detailsServiceImpl.loadUserByUsername(userName);
 
+				System.out.println("also here");
 				if (this.jwtService.isValid(token, userDetails)) {
-					UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
-							new UsernamePasswordAuthenticationToken(userDetails, null,
-									userDetails.getAuthorities());
+					System.out.println("is here");
 
-					usernamePasswordAuthenticationToken.setDetails(
-							new WebAuthenticationDetailsSource().buildDetails(request));
+					UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
+							userDetails, null, userDetails.getAuthorities());
+					System.out.println("or here");
 
-					SecurityContextHolder	.getContext()
-											.setAuthentication(usernamePasswordAuthenticationToken);
+					usernamePasswordAuthenticationToken
+							.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+					System.out.println("second");
+					SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+					System.out.println("last");
 				}
 			}
 
 		} catch (IllegalArgumentException e) {
 			System.out.println("Unable to get JWT Token");
-//			throw new ApiException("Your login session expired!! Kindly login again.");
+			throw new ApiException("You are not logged in!! Kindly login.", HttpStatus.UNAUTHORIZED, false);
 
 		} catch (ExpiredJwtException e) {
 			System.out.println("JWT Token was Expired");
-//			throw new ApiException("Your login session expired!! Kindly login again.");
+			throw new ApiException("Your login session expired!! Kindly login again.", HttpStatus.UNAUTHORIZED, false);
 
 		} catch (MalformedJwtException e) {
 			System.out.println("Invalid JWT Token");
-//			throw new ApiException("Your login session expired!! Kindly login again.");
+			throw new ApiException("Invalid login request!! Kindly login again.", HttpStatus.UNAUTHORIZED, false);
 
 		}
 
+		System.out.println("finally");
 		filterChain.doFilter(request, response);
 	}
 

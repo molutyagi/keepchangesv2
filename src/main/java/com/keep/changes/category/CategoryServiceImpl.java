@@ -29,10 +29,10 @@ public class CategoryServiceImpl implements CategoryService {
 	@Autowired
 	private ModelMapper modelMapper;
 
-	@Value("${category-svg}")
+	@Value("${category-svg-path}")
 	private String CATEGORY_SVG_PATH;
 
-	@Value("${default-category-svg}")
+	@Value("${category-svg.default}")
 	private String DEFAULT_CATEGORY_SVG;
 
 //	add
@@ -167,7 +167,8 @@ public class CategoryServiceImpl implements CategoryService {
 				&& !category.getCategorySvg().equals(DEFAULT_CATEGORY_SVG)) {
 
 			try {
-				isDeleted = this.fileService.deleteFile(CATEGORY_SVG_PATH, category.getCategorySvg());
+				this.fileService.deleteFile(CATEGORY_SVG_PATH, category.getCategorySvg());
+				isDeleted = true;
 			} catch (IOException e) {
 				throw new ApiException("OOPS!! Something went wrong. Could not update SVG.", HttpStatus.BAD_REQUEST,
 						false);

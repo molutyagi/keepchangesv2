@@ -5,6 +5,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
+import com.keep.changes.account.AccountDto;
+import com.keep.changes.address.AddressDto;
+import com.keep.changes.donation.DonationDto;
+import com.keep.changes.fundraiser.FundraiserDto;
+import com.keep.changes.pan.PanDto;
 import com.keep.changes.role.RoleDto;
 
 import jakarta.validation.constraints.Email;
@@ -20,7 +26,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class UserDto {
-	@JsonProperty(value = "id", access = JsonProperty.Access.READ_ONLY)
+
 	private Long id;
 
 	@NotEmpty
@@ -46,22 +52,28 @@ public class UserDto {
 
 	private String about;
 
-	@JsonProperty(value = "registerTime", access = JsonProperty.Access.READ_ONLY)
+	@JsonProperty(access = Access.READ_ONLY)
 	private Date registerTime;
 
-	@JsonProperty(value = "lastUpdateTime", access = JsonProperty.Access.READ_ONLY)
+	@JsonProperty(access = Access.READ_ONLY)
 	private Date lastUpdateTime;
 
+	@JsonProperty(access = Access.READ_ONLY)
 	private Set<RoleDto> roles = new HashSet<>();
 
-//	private AddressDto address;
+	@JsonProperty(access = Access.READ_ONLY)
+	private AddressDto address;
 
-//	private PanDto pan;
+	@JsonProperty(access = Access.READ_ONLY)
+	private PanDto pan;
 
-//	private Set<AccountDto> accounts = new HashSet<>();
+	@JsonProperty(access = Access.READ_ONLY)
+	private Set<AccountDto> accounts = new HashSet<>();
 
-//	private Set<FundraiserDto> fundraisers = new HashSet<>();
+	@JsonProperty(access = Access.READ_ONLY)
+	private Set<FundraiserDto> fundraisers = new HashSet<>();
 
-//	private Set<DonationDto> donationDtos = new HashSet<>();
+	@JsonProperty(access = Access.READ_ONLY)
+	private Set<DonationDto> donationDtos = new HashSet<>();
 
 }

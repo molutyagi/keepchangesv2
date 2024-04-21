@@ -40,19 +40,15 @@ public class FileServiceImpl implements FileService {
 		return inputStream;
 	}
 
-	public boolean deleteFile(String path, String fileName) throws IOException {
-
-		boolean deleted = false;
+	public void deleteFile(String path, String fileName) throws IOException {
 
 		String fullPath = path + File.separator + fileName;
 		Path filePath = Paths.get(fullPath);
 		try {
-			boolean deleteIfExists = Files.deleteIfExists(filePath);
-			deleted = deleteIfExists;
+			Files.deleteIfExists(filePath);
 		} catch (IOException e) {
 			throw new IOException("Could not delete File", e);
 		}
-		return deleted;
 
 	}
 }

@@ -94,6 +94,8 @@ public class UserServiceImpl implements UserService {
 		User user = this.userRepository.findById(uId)
 				.orElseThrow(() -> new ResourceNotFoundException("User", "Id", uId));
 
+//		System.out.println("ROLES : " + partialUserDto.getRoles().isEmpty());
+
 		User partialUser = this.modelMapper.map(partialUserDto, User.class);
 
 		Field[] declaredFields = User.class.getDeclaredFields();
@@ -104,6 +106,7 @@ public class UserServiceImpl implements UserService {
 
 				if (value != null) {
 
+					System.out.println(field + " : field , value : " + value);
 					if (field.getName().equals("password")) {
 
 						value = this.passwordEncoder.encode(value.toString());
@@ -160,13 +163,13 @@ public class UserServiceImpl implements UserService {
 		return true;
 	}
 
-//	Delete profile image
+//	Delete cover image
 	@Override
 	@Transactional
 	public boolean deleteCoverImage(long uId) {
 		User user = this.userRepository.findById(uId)
 				.orElseThrow(() -> new ResourceNotFoundException("User", "Id", uId));
-
+		System.out.println("user found");
 		if (!this.hasPreviousCover(user)) {
 			return false;
 		}
@@ -249,14 +252,15 @@ public class UserServiceImpl implements UserService {
 				&& !user.getDisplayImage().equals(this.DEFAULT_PROFILE_IMAGE)) {
 
 			try {
-				isDeleted = this.fileService.deleteFile(profileImagePath, user.getDisplayImage());
+				this.fileService.deleteFile(profileImagePath, user.getDisplayImage());
+				isDeleted = true;
 			} catch (IOException e) {
-				throw new ApiException("OOPS!! Something went wrong. Could not update profile image.",
+				throw new ApiException("1 OOPS!! Something went wrong. Could not update profile image.",
 						HttpStatus.BAD_REQUEST, false);
 			}
 
 			if (isDeleted == false) {
-				throw new ApiException("OOPS!! Something went wrong. Could not update profile image.",
+				throw new ApiException("2 OOPS!! Something went wrong. Could not update profile image.",
 						HttpStatus.BAD_REQUEST, false);
 			}
 		}
@@ -272,14 +276,15 @@ public class UserServiceImpl implements UserService {
 				&& !user.getCoverImage().equals(this.DEFAULT_COVER_IMAGE)) {
 
 			try {
-				isDeleted = this.fileService.deleteFile(profileImagePath, user.getDisplayImage());
+				this.fileService.deleteFile(coverImagePath, user.getCoverImage());
+				isDeleted = true;
 			} catch (IOException e) {
-				throw new ApiException("OOPS!! Something went wrong. Could not update cover image.",
+				throw new ApiException("1 OOPS!! Something went wrong. Could not update cover image.",
 						HttpStatus.BAD_REQUEST, false);
 			}
 
 			if (isDeleted == false) {
-				throw new ApiException("OOPS!! Something went wrong. Could not update cover image.",
+				throw new ApiException("2 OOPS!! Something went wrong. Could not update cover image.",
 						HttpStatus.BAD_REQUEST, false);
 			}
 		}

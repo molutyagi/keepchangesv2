@@ -7,6 +7,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -46,13 +47,13 @@ public class SecurityConfig {
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-		return http.csrf(AbstractHttpConfigurer::disable)
-				.authorizeHttpRequests((req) -> req.requestMatchers(PUBLIC_URLS).permitAll()
-						.requestMatchers(HttpMethod.GET).permitAll().anyRequest().authenticated())
-				.userDetailsService(userDetailsServiceImpl)
+		return http.cors(Customizer.withDefaults()).csrf(AbstractHttpConfigurer::disable)
 				.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authenticationProvider(this.daoAuthenticationProviderBean())
 				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+				.authorizeHttpRequests((req) -> req.requestMatchers(PUBLIC_URLS).permitAll()
+						.requestMatchers(HttpMethod.GET).permitAll().anyRequest().authenticated())
+				.userDetailsService(userDetailsServiceImpl)
 				.exceptionHandling(e -> e.accessDeniedHandler(this.accessDeniedHandler)
 						.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
 				.build();

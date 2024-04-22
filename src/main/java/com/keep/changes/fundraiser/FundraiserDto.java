@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.keep.changes.account.AccountDto;
 import com.keep.changes.address.AddressDto;
 import com.keep.changes.category.CategoryDto;
@@ -12,6 +13,7 @@ import com.keep.changes.pan.PanDto;
 import com.keep.changes.photo.PhotoDto;
 import com.keep.changes.user.UserDto;
 
+import io.micrometer.common.lang.NonNull;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
@@ -25,7 +27,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class FundraiserDto {
-	private long id;
+	private Long id;
 
 	@NotEmpty
 	private String fundraiserTitle;
@@ -36,11 +38,11 @@ public class FundraiserDto {
 	@NotEmpty
 	private String cause;
 
-	@NotEmpty
-	private double raiseGoal;
+	@NonNull
+	private Double raiseGoal;
 
-	@JsonProperty(value = "raised", access = JsonProperty.Access.READ_ONLY)
-	private double raised;
+	@JsonProperty(access = Access.READ_ONLY)
+	private Double raised;
 
 	@NotEmpty
 	@Email(message = "Given email is not valid.")
@@ -51,31 +53,31 @@ public class FundraiserDto {
 	@Pattern(regexp = "(0|91)?[6-9][0-9]{9}", message = "Invalid Number.")
 	private String phone;
 
-	@JsonProperty(value = "startDate", access = JsonProperty.Access.READ_ONLY)
+	@JsonProperty(access = Access.READ_ONLY)
 	private Date startDate;
 	private Date endDate;
 
-	@JsonProperty(value = "lastModifiedDate", access = JsonProperty.Access.READ_ONLY)
+	@JsonProperty(access = Access.READ_ONLY)
 	private Date lastModifiedDate;
 
-	@NotEmpty
+//	@NotEmpty
 	private String displayPhoto;
 
 	private String coverPhoto;
 
-	@JsonProperty(value = "isActive", access = JsonProperty.Access.READ_ONLY)
+	@JsonProperty(access = Access.READ_ONLY)
 	private boolean isActive;
 
-	@JsonProperty(value = "status", access = JsonProperty.Access.READ_ONLY)
+	@JsonProperty(access = Access.READ_ONLY)
 	private AdminApproval approval;
 
-	@JsonProperty(value = "status", access = JsonProperty.Access.READ_ONLY)
+	@JsonProperty(access = Access.READ_ONLY)
 	private FundraiserStatus status;
 
-	@NotEmpty
+	@NonNull
 	private CategoryDto category;
 
-//	@JsonProperty(value = "postedBy", access = JsonProperty.Access.READ_ONLY)
+	@JsonProperty(access = Access.READ_ONLY)
 	private UserDto postedBy;
 
 	private Set<PhotoDto> photos;
@@ -84,8 +86,19 @@ public class FundraiserDto {
 
 	private PanDto pan;
 
-	private AccountDto accounts;
+	private AccountDto account;
 
-	private Set<DonationDto> donationDtos;
+	private Set<DonationDto> donations;
+
+	@Override
+	public String toString() {
+		return "FundraiserDto [id=" + id + ", fundraiserTitle=" + fundraiserTitle + ", fundraiserDescription="
+				+ fundraiserDescription + ", cause=" + cause + ", raiseGoal=" + raiseGoal + ", raised=" + raised
+				+ ", email=" + email + ", phone=" + phone + ", startDate=" + startDate + ", endDate=" + endDate
+				+ ", lastModifiedDate=" + lastModifiedDate + ", displayPhoto=" + displayPhoto + ", coverPhoto="
+				+ coverPhoto + ", isActive=" + isActive + ", approval=" + approval + ", status=" + status
+				+ ", category=" + category + ", postedBy=" + postedBy + ", photos=" + photos + ", address=" + address
+				+ ", pan=" + pan + ", accounts=" + account + ", donationDtos=" + donations + "]";
+	}
 
 }

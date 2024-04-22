@@ -70,10 +70,10 @@ public class UserDto {
 	@JsonProperty(access = Access.READ_ONLY)
 	private Set<AccountDto> accounts = new HashSet<>();
 
-	@JsonProperty(access = Access.READ_ONLY)
+//	@JsonProperty(access = Access.READ_ONLY)
 	private Set<FundraiserDto> fundraisers = new HashSet<>();
 
 	@JsonProperty(access = Access.READ_ONLY)
-	private Set<DonationDto> donationDtos = new HashSet<>();
+	private Set<DonationDto> donations = new HashSet<>();
 
 }

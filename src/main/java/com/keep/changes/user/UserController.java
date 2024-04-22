@@ -208,12 +208,6 @@ public class UserController {
 		try {
 			fileName = this.fileService.uploadImage(coverImagePath, image);
 		} catch (IOException e) {
-			try {
-				this.fileService.deleteFile(coverImagePath, fileName);
-			} catch (IOException e1) {
-				throw new ApiException("OOPS!! Something went wrong. Could not update cover image.",
-						HttpStatus.BAD_REQUEST, false);
-			}
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body(" OOPS!! Something went wrong. Could not update profile image.");
 		}

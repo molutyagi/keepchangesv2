@@ -5,8 +5,8 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.keep.changes.category.CategoryDto;
-import com.keep.changes.user.UserDto;
+import com.keep.changes.category.Category;
+import com.keep.changes.user.User;
 
 @Repository
 public interface FundraiserRepository extends JpaRepository<Fundraiser, Long> {
@@ -17,9 +17,9 @@ public interface FundraiserRepository extends JpaRepository<Fundraiser, Long> {
 
 	List<Fundraiser> findByFundraiserTitleContaining(String keyWord);
 
-	List<Fundraiser> findByCategory(CategoryDto categoryDto);
+	List<Fundraiser> findByCategory(Category category);
 
-	List<Fundraiser> findByPostedBy(UserDto userDto);
+	List<Fundraiser> findByPostedBy(User user);
 
 	List<Fundraiser> findByCauseContaining(String cause);
 }

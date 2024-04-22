@@ -45,7 +45,7 @@ public class Fundraiser {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private Long id;
 
 	@Column(columnDefinition = "varchar(100)", nullable = false)
 	private String fundraiserTitle;
@@ -56,9 +56,9 @@ public class Fundraiser {
 	@Column(columnDefinition = "varchar(100)")
 	private String cause;
 
-	private double raiseGoal;
+	private Double raiseGoal;
 
-	private double raised;
+	private Double raised;
 
 	@Email
 	@Column(columnDefinition = "varchar(30)")
@@ -117,7 +117,7 @@ public class Fundraiser {
 	@OneToMany(mappedBy = "fundraiser", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private Set<Donation> donations = new HashSet<>();
 
-	public void putUpdateFundraiser(long id, String fundraiserTitle, String fundraiserDescription, String cause,
+	public void putUpdateFundraiser(Long id, String fundraiserTitle, String fundraiserDescription, String cause,
 			double raiseGoal, String email, String phone, Date endDate, String displayPhoto, String coverPhoto) {
 
 		this.id = id;
@@ -131,5 +131,18 @@ public class Fundraiser {
 		this.displayPhoto = displayPhoto;
 		this.coverPhoto = coverPhoto;
 	}
+
+	@Override
+	public String toString() {
+		return "Fundraiser [id=" + id + ", fundraiserTitle=" + fundraiserTitle + ", fundraiserDescription="
+				+ fundraiserDescription + ", cause=" + cause + ", raiseGoal=" + raiseGoal + ", raised=" + raised
+				+ ", email=" + email + ", phone=" + phone + ", startDate=" + startDate + ", endDate=" + endDate
+				+ ", lastModifiedDate=" + lastModifiedDate + ", displayPhoto=" + displayPhoto + ", coverPhoto="
+				+ coverPhoto + ", isActive=" + isActive + ", approval=" + approval + ", status=" + status
+				+ ", category=" + category + ", postedBy=" + postedBy + ", photos=" + photos + ", address=" + address
+				+ ", pan=" + pan + ", account=" + account + ", donations=" + donations + "]";
+	}
+	
+	
 
 }

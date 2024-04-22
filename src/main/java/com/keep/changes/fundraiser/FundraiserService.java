@@ -2,9 +2,6 @@ package com.keep.changes.fundraiser;
 
 import java.util.List;
 
-import com.keep.changes.category.CategoryDto;
-import com.keep.changes.user.UserDto;
-
 import jakarta.validation.Valid;
 
 public interface FundraiserService {
@@ -36,11 +33,11 @@ public interface FundraiserService {
 
 	List<FundraiserDto> getFundraiserByPhone(String phone);
 
-	List<FundraiserDto> getFundraisersByName(String name);
+	List<FundraiserDto> getFundraisersByTitle(String title);
 
-	List<FundraiserDto> getFundraisersByCategory(CategoryDto categoryDto);
+	List<FundraiserDto> getFundraisersByCategory(Long categoryId);
 
-	List<FundraiserDto> getFundraisersByPoster(UserDto userDto);
+	List<FundraiserDto> getFundraisersByPoster(String username);
 
 	List<FundraiserDto> getFundraisersByCause(String cause);
 

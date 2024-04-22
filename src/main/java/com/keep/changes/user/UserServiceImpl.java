@@ -145,8 +145,8 @@ public class UserServiceImpl implements UserService {
 			this.hasPreviousCover(user);
 			this.userRepository.delete(user);
 		} catch (Exception e) {
-			throw new ApiException("OOPS!! Something went wrong. Could not delete user.", HttpStatus.BAD_REQUEST,
-					false);
+			throw new ApiException("OOPS!! Something went wrong. Could not delete user.",
+					HttpStatus.INTERNAL_SERVER_ERROR, false);
 		}
 	}
 

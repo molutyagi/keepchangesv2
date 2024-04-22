@@ -1,10 +1,5 @@
 package com.keep.changes.category;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import com.keep.changes.fundraiser.FundraiserDto;
-
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -25,10 +20,8 @@ public class CategoryDto {
 	@NotEmpty
 	private String categoryDescription;
 
-//	@NotEmpty
+	@NotEmpty
 	private String categorySvg;
-
-	private Set<FundraiserDto> fundraisers = new HashSet<>();
 
 	@Override
 	public String toString() {

@@ -13,13 +13,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.keep.changes.category.Category;
-import com.keep.changes.category.CategoryDto;
 import com.keep.changes.category.CategoryRepository;
 import com.keep.changes.exception.ApiException;
 import com.keep.changes.exception.ResourceNotFoundException;
 import com.keep.changes.file.FileService;
 import com.keep.changes.user.User;
-import com.keep.changes.user.UserDto;
 import com.keep.changes.user.UserRepository;
 
 import jakarta.transaction.Transactional;
@@ -32,10 +30,10 @@ public class FundraiserServiceImpl implements FundraiserService {
 	private FundraiserRepository fundraiserRepository;
 
 	@Autowired
-	private UserRepository userRepository;
+	private CategoryRepository categoryRepository;
 
 	@Autowired
-	private CategoryRepository categoryRepository;
+	private UserRepository userRepository;
 
 	@Autowired
 	private ModelMapper modelMapper;
@@ -104,6 +102,8 @@ public class FundraiserServiceImpl implements FundraiserService {
 			try {
 				Object value = field.get(partialFundraiser);
 				if (value != null) {
+					System.out.println("2");
+					System.out.println(field + " : field , value : " + value);
 
 					if (field.getName().equals("displayPhoto")) {
 						this.hasPreviousDisplay(fundraiser);
@@ -120,7 +120,10 @@ public class FundraiserServiceImpl implements FundraiserService {
 				throw new ApiException("error updating fundraiser", HttpStatus.BAD_REQUEST, false);
 			}
 		}
+		System.out.println(fundraiser);
+		System.out.println("second last");
 		this.fundraiserRepository.save(fundraiser);
+		System.out.println("finally");
 		return this.modelMapper.map(fundraiser, FundraiserDto.class);
 	}
 
@@ -142,6 +145,7 @@ public class FundraiserServiceImpl implements FundraiserService {
 	}
 
 	@Override
+	@Transactional
 	public boolean deleteDisplay(@Valid Long fId) {
 		Fundraiser fundraiser = this.fundraiserRepository.findById(fId)
 				.orElseThrow(() -> new ResourceNotFoundException("Fundraiser", "Id", fId));
@@ -156,6 +160,7 @@ public class FundraiserServiceImpl implements FundraiserService {
 	}
 
 	@Override
+	@Transactional
 	public boolean deleteCover(@Valid Long fId) {
 
 		Fundraiser fundraiser = this.fundraiserRepository.findById(fId)
@@ -167,7 +172,7 @@ public class FundraiserServiceImpl implements FundraiserService {
 
 		fundraiser.setCoverPhoto(DEFAULT_COVER_IMAGE);
 		this.fundraiserRepository.save(fundraiser);
-		return false;
+		return true;
 	}
 
 //	get
@@ -211,8 +216,8 @@ public class FundraiserServiceImpl implements FundraiserService {
 //	by title containing
 	@Override
 	@Transactional
-	public List<FundraiserDto> getFundraisersByName(String name) {
-		List<Fundraiser> fundraisers = this.fundraiserRepository.findByFundraiserTitleContaining(name);
+	public List<FundraiserDto> getFundraisersByTitle(String title) {
+		List<Fundraiser> fundraisers = this.fundraiserRepository.findByFundraiserTitleContaining(title);
 
 		return fundraiserToDto(fundraisers);
 	}
@@ -220,9 +225,12 @@ public class FundraiserServiceImpl implements FundraiserService {
 //	by category
 	@Override
 	@Transactional
-	public List<FundraiserDto> getFundraisersByCategory(CategoryDto categoryDto) {
+	public List<FundraiserDto> getFundraisersByCategory(Long categoryId) {
 
-		List<Fundraiser> fundraisers = this.fundraiserRepository.findByCategory(categoryDto);
+		Category category = this.categoryRepository.findById(categoryId)
+				.orElseThrow(() -> new ResourceNotFoundException("Category", "Id", categoryId));
+
+		List<Fundraiser> fundraisers = this.fundraiserRepository.findByCategory(category);
 
 		return fundraiserToDto(fundraisers);
 	}
@@ -230,9 +238,18 @@ public class FundraiserServiceImpl implements FundraiserService {
 //	by poster
 	@Override
 	@Transactional
-	public List<FundraiserDto> getFundraisersByPoster(UserDto userDto) {
+	public List<FundraiserDto> getFundraisersByPoster(String username) {
 
-		List<Fundraiser> fundraisers = this.fundraiserRepository.findByPostedBy(userDto);
+		List<User> users = this.userRepository.findByNameContaining(username)
+				.orElseThrow(() -> new ResourceNotFoundException("User", "Username", username));
+
+		List<Fundraiser> fundraisers = new ArrayList<>();
+		for (User user : users) {
+
+			List<Fundraiser> fundraisersByUser = this.fundraiserRepository.findByPostedBy(user);
+
+			fundraisers.addAll(fundraisersByUser);
+		}
 
 		return fundraiserToDto(fundraisers);
 	}

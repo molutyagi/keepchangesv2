@@ -91,9 +91,10 @@ public class UserServiceImpl implements UserService {
 	@Transactional
 	public UserDto patchUpdateUser(Long uId, UserDto partialUserDto) {
 
+		System.out.println("1");
 		User user = this.userRepository.findById(uId)
 				.orElseThrow(() -> new ResourceNotFoundException("User", "Id", uId));
-
+		System.out.println("2");
 //		System.out.println("ROLES : " + partialUserDto.getRoles().isEmpty());
 
 		User partialUser = this.modelMapper.map(partialUserDto, User.class);
@@ -127,6 +128,7 @@ public class UserServiceImpl implements UserService {
 				throw new RuntimeException("error updating user", e);
 			}
 		}
+		System.out.println("3");
 		this.userRepository.save(user);
 		return this.modelMapper.map(user, UserDto.class);
 	}

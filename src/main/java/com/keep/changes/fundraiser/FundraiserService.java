@@ -5,6 +5,8 @@ import java.util.List;
 import com.keep.changes.category.CategoryDto;
 import com.keep.changes.user.UserDto;
 
+import jakarta.validation.Valid;
+
 public interface FundraiserService {
 
 //	Add Fundraiser
@@ -18,6 +20,12 @@ public interface FundraiserService {
 
 //	Delete Fundraiser
 	void deleteFundraiser(Long fId);
+
+//	delete display
+	boolean deleteDisplay(@Valid Long fId);
+
+//	delete cover
+	boolean deleteCover(@Valid Long fId);
 
 //	Get Fundraiser
 	FundraiserDto getFundraiserById(Long fId);

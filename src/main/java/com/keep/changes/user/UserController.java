@@ -27,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.keep.changes.exception.ApiException;
+import com.keep.changes.exception.ResourceNotFoundException;
 import com.keep.changes.file.FileService;
 import com.keep.changes.payload.response.ApiResponse;
 
@@ -241,7 +242,7 @@ public class UserController {
 	public ResponseEntity<ApiResponse> deleteUserCoverImage(@PathVariable Long uId) {
 
 		if (!this.userService.deleteCoverImage(uId)) {
-			ResponseEntity.ok(new ApiResponse("Cover image does not exists.", false));
+			return ResponseEntity.ok(new ApiResponse("Cover image does not exists.", false));
 		}
 
 		return ResponseEntity.ok(new ApiResponse("Cover Image Deleted Successfully.", true));
@@ -273,6 +274,8 @@ public class UserController {
 			@RequestParam(value = "coverImage", required = false) MultipartFile coverImage,
 			@RequestParam(value = "userData", required = false) String userData) {
 
+//		UserDto userDto = this.userService.getUserById(uId);
+		System.out.println("here");
 		UserDto userDto = new UserDto();
 		UserDto updatedUser;
 		String profileImageName = null;
@@ -290,8 +293,8 @@ public class UserController {
 			try {
 				profileImageName = this.fileService.uploadImage(profileImagePath, profileImage);
 			} catch (IOException e) {
-				throw new ApiException("OOPS!! Something went wrong. Could not update profile.", HttpStatus.BAD_REQUEST,
-						false);
+				throw new ApiException("1 OOPS!! Something went wrong. Could not update profile.",
+						HttpStatus.BAD_REQUEST, false);
 			}
 			userDto.setDisplayImage(profileImageName);
 		}
@@ -300,8 +303,8 @@ public class UserController {
 			try {
 				coverImageName = this.fileService.uploadImage(coverImagePath, coverImage);
 			} catch (IOException e) {
-				throw new ApiException("OOPS!! Something went wrong. Could not update profile.", HttpStatus.BAD_REQUEST,
-						false);
+				throw new ApiException("2 OOPS!! Something went wrong. Could not update profile.",
+						HttpStatus.BAD_REQUEST, false);
 			}
 			userDto.setCoverImage(coverImageName);
 		}
@@ -312,17 +315,16 @@ public class UserController {
 			try {
 				this.fileService.deleteFile(profileImagePath, profileImageName);
 			} catch (IOException e1) {
-				throw new ApiException("OOPS!! Something went wrong. Could not update profile.", HttpStatus.BAD_REQUEST,
-						false);
+				throw new ApiException("3 OOPS!! Something went wrong. Could not update profile.",
+						HttpStatus.BAD_REQUEST, false);
 			}
 			try {
 				this.fileService.deleteFile(coverImagePath, coverImageName);
 			} catch (IOException e1) {
-				throw new ApiException("OOPS!! Something went wrong. Could not update profile.", HttpStatus.BAD_REQUEST,
-						false);
+				throw new ApiException("4 OOPS!! Something went wrong. Could not update profile.",
+						HttpStatus.BAD_REQUEST, false);
 			}
-			throw new ApiException("OOPS!! Something went wrong. Could not update profile.", HttpStatus.BAD_REQUEST,
-					false);
+			throw new ResourceNotFoundException("User", "Id", uId);
 		}
 
 		return ResponseEntity.ok(updatedUser);

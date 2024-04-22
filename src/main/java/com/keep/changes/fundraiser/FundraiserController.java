@@ -1,8 +1,10 @@
 package com.keep.changes.fundraiser;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,8 +15,16 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.keep.changes.category.CategoryDto;
+import com.keep.changes.category.CategoryService;
+import com.keep.changes.exception.ApiException;
+import com.keep.changes.file.FileService;
 import com.keep.changes.payload.response.ApiResponse;
 
 import jakarta.validation.Valid;
@@ -26,16 +36,163 @@ public class FundraiserController {
 	@Autowired
 	private FundraiserService fundraiserService;
 
-//	add fundraiser
-	@PostMapping("add")
-	public ResponseEntity<FundraiserDto> createFundraiser(@Valid @RequestBody FundraiserDto fundraiserDto) {
+	@Autowired
+	private CategoryService categoryService;
 
-		FundraiserDto savedFundraiser = this.fundraiserService.createFundraiser(fundraiserDto);
+	@Autowired
+	private ObjectMapper objectMapper;
 
-		return new ResponseEntity<FundraiserDto>(savedFundraiser, HttpStatus.CREATED);
+	@Autowired
+	private FileService fileService;
+
+	@Value("${fundraiser-profile.images}")
+	private String displayImagePath;
+
+	@Value("${fundraiser-cover.images}")
+	private String coverImagePath;
+
+	@Value("${fundraiser-profile.default}")
+	private String DEFAULT_DISPLAY_IMAGE;
+
+	@Value("${fundraiser-profile.default}")
+	private String DEFAULT_COVER_IMAGE;
+
+//	add complete fundraiser in a single request
+	@PostMapping(value = { "add", "add/" })
+	public ResponseEntity<?> createFundraiser(
+			@Valid @RequestParam(value = "displayImage", required = true) MultipartFile displayImage,
+			@RequestParam(value = "coverImage", required = true) MultipartFile coverImage,
+			@RequestParam(value = "fundraiserData", required = true) String fundraiserData) {
+
+		FundraiserDto fundraiserDto = new FundraiserDto();
+		FundraiserDto createdFundraiser = null;
+		String displayImageName;
+		String coverImageName;
+
+//		set json data to dto
+		try {
+			fundraiserDto = this.objectMapper.readValue(fundraiserData, FundraiserDto.class);
+		} catch (JsonProcessingException e) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Request!");
+		}
+
+//		save and set display image
+		try {
+			displayImageName = this.fileService.uploadImage(displayImagePath, displayImage);
+			fundraiserDto.setDisplayPhoto(displayImageName);
+		} catch (IOException e) {
+			throw new ApiException("OOPS!! Something went wrong. Could not create fundraiser.", HttpStatus.BAD_REQUEST,
+					false);
+		}
+
+//		save and set cover image
+		try {
+			coverImageName = this.fileService.uploadImage(coverImagePath, coverImage);
+			fundraiserDto.setCoverPhoto(coverImageName);
+		} catch (IOException e) {
+			throw new ApiException("OOPS!! Something went wrong. Could not create fundraiser.", HttpStatus.BAD_REQUEST,
+					false);
+		}
+
+//		save fundraiser
+		try {
+//			get category
+//			CategoryDto categoryDto = this.categoryService.getById(categoryId);
+//			fundraiserDto.setCategory(categoryDto);
+			createdFundraiser = this.fundraiserService.createFundraiser(fundraiserDto);
+		} catch (Exception e) {
+			try {
+				this.fileService.deleteFile(displayImagePath, displayImageName);
+			} catch (IOException e1) {
+				throw new ApiException("OOPS!! Something went wrong. Could not create fundraiser.",
+						HttpStatus.BAD_REQUEST, false);
+			}
+
+			try {
+				this.fileService.deleteFile(coverImagePath, coverImageName);
+			} catch (IOException e1) {
+				throw new ApiException("OOPS!! Something went wrong. Could not create fundraiser.",
+						HttpStatus.BAD_REQUEST, false);
+			}
+		}
+		return ResponseEntity.ok(createdFundraiser);
 	}
 
-//	Put Update 
+//	update complete fundraiser in a single request
+	@PatchMapping(value = { "fundraiser_{fId}", "fundraiser_{fId}/" })
+	public ResponseEntity<?> updateFundraiser(
+			@Valid @RequestParam(value = "displayImage", required = false) MultipartFile displayImage,
+			@RequestParam(value = "coverImage", required = false) MultipartFile coverImage,
+			@RequestParam(value = "fundraiserData", required = false) String fundraiserData) {
+
+		FundraiserDto fundraiserDto = new FundraiserDto();
+		FundraiserDto createdFundraiser = null;
+		String displayImageName = null;
+		String coverImageName = null;
+
+//		set json data to dto if exists
+		if (fundraiserData != null) {
+			try {
+				fundraiserDto = this.objectMapper.readValue(fundraiserData, FundraiserDto.class);
+			} catch (JsonProcessingException e) {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Request!");
+			}
+		}
+
+//		save and set display image
+		if (displayImage != null) {
+			try {
+				displayImageName = this.fileService.uploadImage(displayImagePath, displayImage);
+				fundraiserDto.setDisplayPhoto(displayImageName);
+			} catch (IOException e) {
+				throw new ApiException("OOPS!! Something went wrong. Could not create fundraiser.",
+						HttpStatus.BAD_REQUEST, false);
+			}
+		}
+
+//		save and set cover image
+		if (coverImage != null) {
+			try {
+				coverImageName = this.fileService.uploadImage(coverImagePath, coverImage);
+				fundraiserDto.setCoverPhoto(coverImageName);
+			} catch (IOException e) {
+				throw new ApiException("OOPS!! Something went wrong. Could not create fundraiser.",
+						HttpStatus.BAD_REQUEST, false);
+			}
+		}
+
+//		save fundraiser
+		try {
+			createdFundraiser = this.fundraiserService.createFundraiser(fundraiserDto);
+		} catch (Exception e) {
+			try {
+				this.fileService.deleteFile(displayImagePath, displayImageName);
+			} catch (IOException e1) {
+				throw new ApiException("OOPS!! Something went wrong. Could not create fundraiser.",
+						HttpStatus.BAD_REQUEST, false);
+			}
+
+			try {
+				this.fileService.deleteFile(coverImagePath, coverImageName);
+			} catch (IOException e1) {
+				throw new ApiException("OOPS!! Something went wrong. Could not create fundraiser.",
+						HttpStatus.BAD_REQUEST, false);
+			}
+			throw new ApiException("OOPS something went wrong could not create fundraiser",
+					HttpStatus.INTERNAL_SERVER_ERROR, false);
+		}
+		return ResponseEntity.ok(createdFundraiser);
+	}
+
+//	patch fundraiser details
+	@PatchMapping(value = { "fundraiser/update_{fId}", "fundraiser/update_{fId}/" })
+	public ResponseEntity<FundraiserDto> patchUpdateFundraiser(@Valid @PathVariable Long fId,
+			@RequestBody FundraiserDto fundraiserDto) {
+
+		return ResponseEntity.ok(this.fundraiserService.patchFundraiser(fId, fundraiserDto));
+	}
+
+//	Put Update fundraiser
 	@PutMapping("fundraiser_{fId}")
 	public ResponseEntity<FundraiserDto> putUpdateFundraiser(@PathVariable long fId,
 			@Valid @RequestBody FundraiserDto fundraiserDto) {
@@ -43,13 +200,104 @@ public class FundraiserController {
 		return ResponseEntity.ok(this.fundraiserService.putUpdateFundraiser(fId, fundraiserDto));
 	}
 
-//	Patch Update
-	@PatchMapping("fundraiser_{fId}")
-	public ResponseEntity<FundraiserDto> patchUpdateFundraiser(@Valid @PathVariable long fId,
-			@RequestBody FundraiserDto partialFundraiserDto) {
+//	update fundraiser display image
+	@PatchMapping(value = { "fundraiser_{fId}/display", "fundraiser_{fId}/display/" })
+	public ResponseEntity<?> updateDisplay(@Valid @PathVariable Long fId,
+			@RequestParam("displayImage") MultipartFile displayImage) {
 
-		return ResponseEntity.ok(this.fundraiserService.patchFundraiser(fId, partialFundraiserDto));
+		FundraiserDto fundraiserDto = new FundraiserDto();
+		FundraiserDto updatedFundraiser = null;
+		String displayImageName = null;
+
+//		save image in directory
+
+		try {
+			displayImageName = this.fileService.uploadImage(displayImagePath, displayImage);
+		} catch (IOException e) {
+			return ResponseEntity.badRequest().body("OOPS Something went wrong. Could not update display imgae");
+		}
+
+//		save in database
+		fundraiserDto.setDisplayPhoto(displayImageName);
+
+		try {
+			updatedFundraiser = this.fundraiserService.patchFundraiser(fId, fundraiserDto);
+		} catch (Exception e) {
+			try {
+				this.fileService.deleteFile(displayImageName, displayImageName);
+			} catch (IOException e1) {
+				return ResponseEntity.internalServerError()
+						.body("OOPS something went wrong. Could not update display image.");
+			}
+			throw new ApiException("OOPS soemthing went wrong could not update display image",
+					HttpStatus.INTERNAL_SERVER_ERROR, false);
+		}
+
+		return ResponseEntity.ok(updatedFundraiser);
 	}
+
+//	update cover image
+	@PatchMapping({ "fundraiser_{fId}/cover", "fundraiser_{fId}/cover/" })
+	public ResponseEntity<?> updateCover(@Valid @PathVariable Long fId,
+			@RequestParam("coverImage") MultipartFile coverImage) {
+
+		FundraiserDto fundraiserDto = new FundraiserDto();
+		FundraiserDto updatedFundraiser = null;
+		String coverImageName = null;
+
+//		save image in directory
+
+		try {
+			coverImageName = this.fileService.uploadImage(coverImagePath, coverImage);
+		} catch (IOException e) {
+			return ResponseEntity.badRequest().body("OOPS Something went wrong. Could not update cover imgae");
+		}
+
+//		save in database
+		fundraiserDto.setCoverPhoto(coverImageName);
+
+		try {
+			updatedFundraiser = this.fundraiserService.patchFundraiser(fId, fundraiserDto);
+		} catch (Exception e) {
+			try {
+				this.fileService.deleteFile(coverImageName, coverImageName);
+			} catch (IOException e1) {
+				return ResponseEntity.internalServerError()
+						.body("OOPS something went wrong. Could not update cover image.");
+			}
+			throw new ApiException("OOPS soemthing went wrong could not update cover image",
+					HttpStatus.INTERNAL_SERVER_ERROR, false);
+		}
+
+		return ResponseEntity.ok(updatedFundraiser);
+	}
+
+//	delete display
+	@DeleteMapping({ "fundraiser_{fId}/display", "fundraiser_{fId}/display/" })
+	public ResponseEntity<ApiResponse> deleteDisplayImage(@Valid @PathVariable Long fId) {
+		if (!this.fundraiserService.deleteDisplay(fId)) {
+			return ResponseEntity.ok(new ApiResponse("Display image does not exist.", false));
+		}
+		return ResponseEntity.ok(new ApiResponse("Display image deleted successfully.", false));
+	}
+
+//	delete cover
+	@DeleteMapping({ "fundraiser_{fId}/cover", "fundraiser_{fId}/cover/" })
+	public ResponseEntity<ApiResponse> deleteCoverImage(@Valid @PathVariable Long fId) {
+		if (!this.fundraiserService.deleteCover(fId)) {
+			return ResponseEntity.ok(new ApiResponse("Cover image does not exist.", false));
+		}
+		return ResponseEntity.ok(new ApiResponse("Cover image deleted successfully.", false));
+	}
+
+////	add fundraiser
+//	@PostMapping("add")
+//	public ResponseEntity<FundraiserDto> createFundraiser(@Valid @RequestBody FundraiserDto fundraiserDto) {
+//
+//		FundraiserDto savedFundraiser = this.fundraiserService.createFundraiser(fundraiserDto);
+//
+//		return new ResponseEntity<FundraiserDto>(savedFundraiser, HttpStatus.CREATED);
+//	}
 
 //	Delete
 	@DeleteMapping("fundraiser_{fId}")

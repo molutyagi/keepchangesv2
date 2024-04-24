@@ -41,7 +41,6 @@ public class AccountController {
 
 //	update
 //	put update
-
 	@PutMapping(value = { "account_{aId}", "account_{aId}/" })
 	@PreAuthorize("@accountController.authenticateUser(#aId, authentication.principal.id, hasRole('ADMIN'))")
 	public ResponseEntity<AccountDto> putUpdateAccount(@Valid @PathVariable Long aId,

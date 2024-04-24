@@ -46,13 +46,14 @@ public class CategoryController {
 	private String DEFAULT_CATEGORY_SVG;
 
 //	create complete category in one go
-	@PostMapping(value = { "add-category/", "add-category" })
+	@PostMapping(value = { "add/", "add" })
 	@PreAuthorize("@categoryController.authenticatedUser(hasRole('ADMIN'))")
 	public ResponseEntity<?> createCategory(
-			@Valid @RequestParam(value = "svg", required = true) MultipartFile categorySvg,
+			@Valid @RequestParam(value = "categorySvg", required = true) MultipartFile categorySvg,
 			@RequestParam(value = "categoryName", required = true) String categoryName,
 			@RequestParam(value = "categoryDescription", required = true) String categoryDescription) {
 
+		System.out.println("in post controller");
 //		create a new category dto instance
 		CategoryDto categoryDto = new CategoryDto();
 
@@ -73,11 +74,17 @@ public class CategoryController {
 		return ResponseEntity.ok(this.categoryService.addCategory(categoryDto));
 	}
 
+//	@PostMapping("add")
+//	public ResponseEntity<CategoryDto> addCategory(@Valid @RequestBody CategoryDto categoryDto) {
+//		CategoryDto category = this.categoryService.addCategory(categoryDto);
+//		return new ResponseEntity<>(category, HttpStatus.CREATED);
+//	}
+
 //	patch complete category
-	@PatchMapping(value = { "category/update-category_{cId}", "category/update-category_{cId}/" })
+	@PatchMapping(value = { "category_{cId}", "category_{cId}/" })
 	@PreAuthorize("@categoryController.authenticatedUser(hasRole('ADMIN'))")
 	public ResponseEntity<?> updateCategoryAndSvg(@Valid @PathVariable Long cId,
-			@RequestParam(value = "svg", required = false) MultipartFile categorySvg,
+			@RequestParam(value = "categorySvg", required = false) MultipartFile categorySvg,
 			@RequestParam(value = "categoryName", required = false) String categoryName,
 			@RequestParam(value = "categoryDescription", required = false) String categoryDescription) {
 
@@ -135,8 +142,8 @@ public class CategoryController {
 
 ////	add svg
 //	@PatchMapping(value = { "category_{cId}/svg", "category_{cId}/svg/" })
-//	@PreAuthorize("@categoryController.authenticatedUser(hasRole('ADMIN'))")
-//	public ResponseEntity<?> addCategorySvg(@Valid @PathVariable Long cId, @RequestParam("svg") MultipartFile image) {
+////	@PreAuthorize("@categoryController.authenticatedUser(hasRole('ADMIN'))")
+//	public ResponseEntity<?> addCategorySvg(@Valid @PathVariable Long cId, @RequestParam("categorySvg") MultipartFile image) {
 //
 //		CategoryDto categoryDto = this.categoryService.getById(cId);
 //
@@ -144,7 +151,8 @@ public class CategoryController {
 //				&& !categoryDto.getCategorySvg().equals(DEFAULT_CATEGORY_SVG)) {
 //			boolean isDeleted;
 //			try {
-//				isDeleted = this.fileService.deleteFile(CATEGORY_SVG_PATH, categoryDto.getCategorySvg());
+//				this.fileService.deleteFile(CATEGORY_SVG_PATH, categoryDto.getCategorySvg());
+//				isDeleted = true;
 //			} catch (IOException e) {
 //				return ResponseEntity.badRequest()
 //						.body(new ApiResponse("OOPS!! Something went wrong. Could not update svg.", false));

@@ -1,19 +1,25 @@
 package com.keep.changes.auth;
 
+import java.io.IOException;
+
 import javax.naming.AuthenticationException;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.core.exc.StreamWriteException;
+import com.fasterxml.jackson.databind.DatabindException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.keep.changes.config.AppConstants;
 import com.keep.changes.exception.ApiException;
 import com.keep.changes.exception.ResourceNotFoundException;
@@ -23,6 +29,9 @@ import com.keep.changes.security.jwt.JwtService;
 import com.keep.changes.user.User;
 import com.keep.changes.user.UserDto;
 import com.keep.changes.user.UserRepository;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Service
 public class AuthenticationServiceImpl implements AuthenticationService {
@@ -64,10 +73,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
 		System.out.println(savedUser);
 
-		String token = this.jwtService.generateToken(savedUser);
+		String accessToken = this.jwtService.generateAccessToken(savedUser);
+		String refreshToken = this.jwtService.generateRefreshToken(savedUser);
 
 		AuthenticationResponse response = new AuthenticationResponse();
-		response.setToken(token);
+		response.setAccessToken(accessToken);
+		response.setRefreshToken(refreshToken);
 
 		return response;
 
@@ -77,7 +88,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 	public AuthenticationResponse login(AuthenticationRequest userRequest) throws AuthenticationException {
 
 		try {
-			Authentication authenticate = this.authenticationManager.authenticate(
+			this.authenticationManager.authenticate(
 					new UsernamePasswordAuthenticationToken(userRequest.getUsername(), userRequest.getPassword()));
 		} catch (BadCredentialsException e) {
 			throw new ApiException("Invalid Password. Enter correct password.", HttpStatus.BAD_REQUEST, false);
@@ -85,12 +96,46 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
 		UserDetails userDetails = this.userDetailsService.loadUserByUsername(userRequest.getUsername());
 
-		String token = this.jwtService.generateToken(userDetails);
+		String accessToken = this.jwtService.generateAccessToken(userDetails);
+		String refreshToken = this.jwtService.generateRefreshToken(userDetails);
 
 		AuthenticationResponse response = new AuthenticationResponse();
-		response.setToken(token);
+		response.setAccessToken(accessToken);
+		response.setRefreshToken(refreshToken);
 
 		return response;
+	}
+
+	@Override
+	public void refreshToken(HttpServletRequest request, HttpServletResponse response)
+			throws StreamWriteException, DatabindException, IOException {
+
+		final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+		final String refreshToken;
+		final String userName;
+
+		if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+			return;
+		}
+
+		refreshToken = authHeader.substring(7);
+		userName = this.jwtService.extractUsernameFromToken(refreshToken);
+		if (userName != null) {
+
+			UserDetails userDetails = this.userRepository.findByEmail(userName)
+					.orElseThrow(() -> new ResourceNotFoundException("User", "Username", userName));
+
+			if (this.jwtService.isValid(refreshToken, userDetails)) {
+
+				String accessToken = this.jwtService.generateAccessToken(userDetails);
+				AuthenticationResponse authResponse = new AuthenticationResponse();
+				authResponse.setAccessToken(accessToken);
+				authResponse.setRefreshToken(refreshToken);
+
+				new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
+			}
+		}
+
 	}
 
 }

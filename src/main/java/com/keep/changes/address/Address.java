@@ -26,7 +26,7 @@ public class Address {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private Long id;
 
 	@Column(columnDefinition = "varchar(100)", nullable = false)
 	private String area;

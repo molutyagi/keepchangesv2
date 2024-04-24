@@ -56,7 +56,7 @@ public class SecurityConfig {
 				.userDetailsService(userDetailsServiceImpl)
 				.exceptionHandling(e -> e.accessDeniedHandler(this.accessDeniedHandler)
 						.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
-				.build();
+				.httpBasic(Customizer.withDefaults()).build();
 	}
 
 	@Bean

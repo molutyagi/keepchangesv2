@@ -1,6 +1,8 @@
 package com.keep.changes.security.jwt;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 
 import javax.crypto.SecretKey;
@@ -21,7 +23,7 @@ public class JwtService {
 	private String JWT_SECRET_KEY;
 
 //	@Value("${JWT_TOKEN_VALIDITY}")
-	private long JWT_TOKEN_VALIDITY = 24 * 60 * 60 * 1000;
+	private long JWT_TOKEN_VALIDITY = 5 * 60 * 1000;
 	private long REFRESH_TOKEN_VALIDITY = 24 * 60 * 60 * 1000;
 
 //	Check if given user is valid
@@ -59,18 +61,24 @@ public class JwtService {
 		return Jwts.parser().verifyWith(getSigningKey()).build().parseSignedClaims(token).getPayload();
 	}
 
-//	generate token method
-	public String generateToken(UserDetails user) {
-		String token = Jwts.builder().subject(user.getUsername()).issuedAt(new Date(System.currentTimeMillis()))
-				.expiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY)).signWith(getSigningKey())
-				.compact();
-		return token;
+//	generate Access token method
+	public String generateAccessToken(UserDetails user) {
+		return generateAccessToken(new HashMap<>(), user);
+	}
+
+	public String generateAccessToken(Map<String, Object> extraclaims, UserDetails user) {
+		return buildToken(extraclaims, user, JWT_TOKEN_VALIDITY);
 	}
 
 //	generate refresh token
-	public String generateRefreshToken() {
-		return "";
-	};
+	public String generateRefreshToken(UserDetails user) {
+		return buildToken(new HashMap<>(), user, REFRESH_TOKEN_VALIDITY);
+	}
+
+	public String buildToken(Map<String, Object> extraClaims, UserDetails user, long expiration) {
+		return Jwts.builder().subject(user.getUsername()).issuedAt(new Date(System.currentTimeMillis()))
+				.expiration(new Date(System.currentTimeMillis() + expiration)).signWith(getSigningKey()).compact();
+	}
 
 //	create secret key
 	private SecretKey getSigningKey() {

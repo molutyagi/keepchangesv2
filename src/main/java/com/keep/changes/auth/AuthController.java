@@ -1,5 +1,7 @@
 package com.keep.changes.auth;
 
+import java.io.IOException;
+
 import javax.naming.AuthenticationException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.keep.changes.user.UserDto;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
 @RestController
@@ -21,7 +25,8 @@ public class AuthController {
 	private AuthenticationService authenticationService;
 
 	@PostMapping("login")
-	public ResponseEntity<AuthenticationResponse> login(@Valid @RequestBody AuthenticationRequest authenticationRequest) {
+	public ResponseEntity<AuthenticationResponse> login(
+			@Valid @RequestBody AuthenticationRequest authenticationRequest) {
 
 		AuthenticationResponse token = null;
 		try {
@@ -38,6 +43,12 @@ public class AuthController {
 	public ResponseEntity<AuthenticationResponse> register(@Valid @RequestBody UserDto userDto) {
 
 		return ResponseEntity.ok(this.authenticationService.register(userDto));
+	}
+
+	@PostMapping("refresh-token")
+	public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		System.out.println("in controller");
+		this.authenticationService.refreshToken(request, response);
 	}
 
 }

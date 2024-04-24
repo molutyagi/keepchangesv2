@@ -17,7 +17,7 @@ import lombok.Setter;
 @Setter
 public class PanDto {
 
-	private long id;
+	private Long id;
 
 	@NotEmpty
 	private String panNumber;
@@ -25,10 +25,25 @@ public class PanDto {
 	@NotEmpty
 	private String nameOnPan;
 
-	@NotEmpty
-	private String panImage;
+//	@NotEmpty
+//	private String panImage;
 
 	private UserDto panHolderDto;
+
+	@NotEmpty
+	private String address;
+
+	@NotEmpty
+	private String city;
+
+	@NotEmpty
+	private String state;
+
+	@NotEmpty
+	private String country;
+
+	@NotEmpty
+	private String pincode;
 
 	private Set<FundraiserDto> fundraiserDtos;
 

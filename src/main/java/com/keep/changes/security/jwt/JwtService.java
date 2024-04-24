@@ -22,6 +22,7 @@ public class JwtService {
 
 //	@Value("${JWT_TOKEN_VALIDITY}")
 	private long JWT_TOKEN_VALIDITY = 24 * 60 * 60 * 1000;
+	private long REFRESH_TOKEN_VALIDITY = 24 * 60 * 60 * 1000;
 
 //	Check if given user is valid
 	public boolean isValid(String token, UserDetails user) {
@@ -65,6 +66,11 @@ public class JwtService {
 				.compact();
 		return token;
 	}
+
+//	generate refresh token
+	public String generateRefreshToken() {
+		return "";
+	};
 
 //	create secret key
 	private SecretKey getSigningKey() {

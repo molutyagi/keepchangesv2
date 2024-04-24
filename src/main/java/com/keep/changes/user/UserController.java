@@ -71,7 +71,7 @@ public class UserController {
 //	PUT Update user
 	@PutMapping("user/update_{uId}")
 	@PreAuthorize("@userController.authenticatedUser(#uId, authentication.principal.id, hasRole('ADMIN'))")
-	public ResponseEntity<?> putUpdateUser(@PathVariable Long uId, @RequestBody UserDto userDto) {
+	public ResponseEntity<UserDto> putUpdateUser(@PathVariable Long uId, @RequestBody UserDto userDto) {
 
 		UserDto updatedUser = this.userService.putUpdateUser(uId, userDto);
 		return ResponseEntity.ok(updatedUser);
@@ -80,7 +80,7 @@ public class UserController {
 //	Patch update user
 	@PatchMapping("user/update_{uId}")
 	@PreAuthorize("@userController.authenticatedUser(#uId, authentication.principal.id, hasRole('ADMIN'))")
-	public ResponseEntity<?> patchUpdateUser(@Valid @PathVariable Long uId, @RequestBody UserDto partialUser) {
+	public ResponseEntity<UserDto> patchUpdateUser(@Valid @PathVariable Long uId, @RequestBody UserDto partialUser) {
 
 		UserDto patchedUser = this.userService.patchUpdateUser(uId, partialUser);
 

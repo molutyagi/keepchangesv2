@@ -63,10 +63,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
 		System.out.println(savedUser);
 
-		String token = this.jwtService.generateToken(savedUser);
+		String accessToken = this.jwtService.generateToken(savedUser);
 
 		AuthenticationResponse response = new AuthenticationResponse();
-		response.setToken(token);
+		response.setAccessToken(accessToken);
 
 		return response;
 
@@ -84,10 +84,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
 		UserDetails userDetails = this.userDetailsService.loadUserByUsername(userRequest.getUsername());
 
-		String token = this.jwtService.generateToken(userDetails);
+		String accessToken = this.jwtService.generateToken(userDetails);
 
 		AuthenticationResponse response = new AuthenticationResponse();
-		response.setToken(token);
+		response.setAccessToken(accessToken);
 
 		return response;
 	}

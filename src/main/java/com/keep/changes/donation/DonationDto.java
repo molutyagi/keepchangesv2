@@ -16,9 +16,9 @@ import lombok.Setter;
 @NoArgsConstructor
 public class DonationDto {
 
-	private long id;
+	private Long id;
 
-	private double donationAmount;
+	private Double donationAmount;
 
 	private Date donationDate;
 

@@ -11,8 +11,8 @@ import com.keep.changes.account.Account;
 import com.keep.changes.address.Address;
 import com.keep.changes.category.Category;
 import com.keep.changes.donation.Donation;
+import com.keep.changes.fundraiser.photo.Photo;
 import com.keep.changes.pan.Pan;
-import com.keep.changes.photo.Photo;
 import com.keep.changes.user.User;
 
 import jakarta.persistence.CascadeType;
@@ -111,7 +111,7 @@ public class Fundraiser {
 	private Pan pan;
 
 	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-	@JoinTable(name = "fundraiser_account", joinColumns = @JoinColumn(name = "fundraiser", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "account", referencedColumnName = "id"))
+//	@JoinTable(name = "fundraiser_account", joinColumns = @JoinColumn(name = "fundraiser", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "account", referencedColumnName = "id"))
 	private Account account;
 
 	@OneToMany(mappedBy = "fundraiser", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

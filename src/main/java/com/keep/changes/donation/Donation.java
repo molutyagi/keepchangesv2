@@ -28,10 +28,10 @@ public class Donation {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private Long id;
 
 	@Column(nullable = false, updatable = false)
-	private double donationAmount;
+	private Double donationAmount;
 
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(nullable = false, updatable = false)

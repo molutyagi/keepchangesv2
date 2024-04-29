@@ -9,8 +9,8 @@ import com.keep.changes.account.AccountDto;
 import com.keep.changes.address.AddressDto;
 import com.keep.changes.category.CategoryDto;
 import com.keep.changes.donation.DonationDto;
+import com.keep.changes.fundraiser.photo.PhotoDto;
 import com.keep.changes.pan.PanDto;
-import com.keep.changes.photo.PhotoDto;
 import com.keep.changes.user.UserDto;
 
 import io.micrometer.common.lang.NonNull;
@@ -98,7 +98,7 @@ public class FundraiserDto {
 				+ ", lastModifiedDate=" + lastModifiedDate + ", displayPhoto=" + displayPhoto + ", coverPhoto="
 				+ coverPhoto + ", isActive=" + isActive + ", approval=" + approval + ", status=" + status
 				+ ", category=" + category + ", postedBy=" + postedBy + ", photos=" + photos + ", address=" + address
-				+ ", pan=" + pan + ", accounts=" + account + ", donationDtos=" + donations + "]";
+				+ ", pan=" + pan + ", account=" + account + ", donationDtos=" + donations + "]";
 	}
 
 }

@@ -1,10 +1,10 @@
 package com.keep.changes.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
@@ -16,8 +16,8 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.keep.changes.exception.CustomAccessDeniedHandler;
@@ -44,6 +44,10 @@ public class SecurityConfig {
 	@Autowired
 	private final CustomAccessDeniedHandler accessDeniedHandler;
 
+	@Autowired
+	@Qualifier("delegatedAuthenticationEntryPoint")
+	AuthenticationEntryPoint authEntryPoint;
+
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
@@ -55,7 +59,7 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.GET).permitAll().anyRequest().authenticated())
 				.userDetailsService(userDetailsServiceImpl)
 				.exceptionHandling(e -> e.accessDeniedHandler(this.accessDeniedHandler)
-						.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+						.authenticationEntryPoint(this.authEntryPoint))
 				.httpBasic(Customizer.withDefaults()).build();
 	}
 
@@ -66,7 +70,6 @@ public class SecurityConfig {
 
 	@Bean
 	AuthenticationManager authenticationManagerBean(AuthenticationConfiguration authConfig) throws Exception {
-
 		return authConfig.getAuthenticationManager();
 	}
 

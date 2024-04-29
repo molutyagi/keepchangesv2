@@ -1,4 +1,4 @@
-package com.keep.changes.fundraiser.photo;
+package com.keep.changes.fundraiser.document;
 
 import com.keep.changes.fundraiser.Fundraiser;
 
@@ -18,14 +18,14 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public class Photo {
+public class FundraiserDocument {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+	private long id;
 
 	@Column(columnDefinition = "varchar(100)", nullable = false)
-	private String photoUrl;
+	private String documentUrl;
 
 	@ManyToOne
 	private Fundraiser fundraiser;

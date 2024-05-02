@@ -10,7 +10,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import com.keep.changes.account.Account;
 import com.keep.changes.address.Address;
 import com.keep.changes.category.Category;
-import com.keep.changes.donation.Donation;
+import com.keep.changes.donation.FundraiserDonation;
 import com.keep.changes.fundraiser.photo.Photo;
 import com.keep.changes.pan.Pan;
 import com.keep.changes.user.User;
@@ -85,10 +85,13 @@ public class Fundraiser {
 	@Column(columnDefinition = "varchar(100)")
 	private String coverPhoto;
 
-	private boolean isActive;
+	private boolean isActive = false;
 
 	@Enumerated(EnumType.STRING)
 	private AdminApproval approval;
+
+	@Column(columnDefinition = "longtext")
+	private String adminRemarks;
 
 	@Enumerated(EnumType.STRING)
 	private FundraiserStatus status;
@@ -115,7 +118,7 @@ public class Fundraiser {
 	private Account account;
 
 	@OneToMany(mappedBy = "fundraiser", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-	private Set<Donation> donations = new HashSet<>();
+	private Set<FundraiserDonation> donations = new HashSet<>();
 
 	public void putUpdateFundraiser(Long id, String fundraiserTitle, String fundraiserDescription, String cause,
 			double raiseGoal, String email, String phone, Date endDate, String displayPhoto, String coverPhoto) {
@@ -142,7 +145,5 @@ public class Fundraiser {
 				+ ", category=" + category + ", postedBy=" + postedBy + ", photos=" + photos + ", address=" + address
 				+ ", pan=" + pan + ", account=" + account + ", donations=" + donations + "]";
 	}
-	
-	
 
 }

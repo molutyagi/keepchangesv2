@@ -12,6 +12,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MultipartException;
 
 import com.keep.changes.payload.response.ApiResponse;
 
@@ -56,6 +57,13 @@ public class GlobalExceptionHandler {
 		});
 
 		return new ResponseEntity<Map<String, String>>(respErrors, HttpStatus.BAD_REQUEST);
+	}
+
+	@ExceptionHandler(MultipartException.class)
+	public ResponseEntity<ApiResponse> multipartFileExceptionHandler(MultipartException ex) {
+		String message = ex.getMessage();
+		ApiResponse apiResponse = new ApiResponse(message, false);
+		return new ResponseEntity<ApiResponse>(apiResponse, HttpStatus.BAD_REQUEST);
 	}
 
 	@ExceptionHandler(ApiException.class)

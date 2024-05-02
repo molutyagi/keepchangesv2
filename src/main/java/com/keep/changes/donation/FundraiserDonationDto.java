@@ -14,11 +14,13 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class DonationDto {
+public class FundraiserDonationDto {
 
 	private Long id;
 
 	private Double donationAmount;
+	
+	private String transactionId;
 
 	private Date donationDate;
 

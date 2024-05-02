@@ -6,6 +6,10 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
+import com.keep.changes.account.AccountDto;
+import com.keep.changes.donation.FundraiserDonationDto;
+import com.keep.changes.fundraiser.FundraiserDto;
+import com.keep.changes.pan.PanDto;
 import com.keep.changes.role.RoleDto;
 
 import jakarta.validation.constraints.Email;
@@ -60,7 +64,7 @@ public class UserDto {
 //	private AddressDto address;
 //
 //	@JsonProperty(access = Access.READ_ONLY)
-//	private PanDto pan;
+	private PanDto pan;
 //
 //	@JsonProperty(access = Access.READ_ONLY)
 //	private Set<AccountDto> accounts = new HashSet<>();
@@ -69,6 +73,6 @@ public class UserDto {
 //	private Set<FundraiserDto> fundraisers = new HashSet<>();
 //
 //	@JsonProperty(access = Access.READ_ONLY)
-//	private Set<DonationDto> donations = new HashSet<>();
+//	private Set<FundraiserDonationDto> donations = new HashSet<>();
 
 }

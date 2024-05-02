@@ -32,6 +32,8 @@ import lombok.RequiredArgsConstructor;
 @EnableMethodSecurity
 public class SecurityConfig {
 
+	private static final String[] ADMIN_ONLY_URLS = { "api/admin/**", "api/categories/**" };
+
 	private static final String[] PUBLIC_URLS = { "/v3/api-docs", "/v2/api-docs", "api/auth/**",
 			"/swagger-resources/**", "/swagger-ui/**", "/webjars/**" };
 
@@ -56,10 +58,10 @@ public class SecurityConfig {
 				.authenticationProvider(this.daoAuthenticationProviderBean())
 				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 				.authorizeHttpRequests((req) -> req.requestMatchers(PUBLIC_URLS).permitAll()
-						.requestMatchers(HttpMethod.GET).permitAll().anyRequest().authenticated())
-				.userDetailsService(userDetailsServiceImpl)
-				.exceptionHandling(e -> e.accessDeniedHandler(this.accessDeniedHandler)
-						.authenticationEntryPoint(this.authEntryPoint))
+						.requestMatchers(ADMIN_ONLY_URLS).hasRole("ADMIN").requestMatchers(HttpMethod.GET)
+						.permitAll().anyRequest().authenticated())
+				.userDetailsService(userDetailsServiceImpl).exceptionHandling(e -> e
+						.accessDeniedHandler(this.accessDeniedHandler).authenticationEntryPoint(this.authEntryPoint))
 				.httpBasic(Customizer.withDefaults()).build();
 	}
 

@@ -138,9 +138,8 @@ public class UserServiceImpl implements UserService {
 				throw new RuntimeException("error updating user", e);
 			}
 		}
-		System.out.println("3");
-		this.userRepository.save(user);
-		return this.modelMapper.map(user, UserDto.class);
+		User updatedUser = 	this.userRepository.save(user);
+		return this.modelMapper.map(updatedUser, UserDto.class);
 	}
 
 //	Update user email

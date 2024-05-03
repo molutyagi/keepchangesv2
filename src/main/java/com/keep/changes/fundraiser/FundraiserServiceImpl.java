@@ -95,9 +95,9 @@ public class FundraiserServiceImpl implements FundraiserService {
 				fd.getRaiseGoal(), fd.getEmail(), fd.getPhone(), fd.getEndDate(), fd.getDisplayPhoto(),
 				fd.getCoverPhoto());
 
-		this.fundraiserRepository.save(fundraiser);
+		Fundraiser updated = this.fundraiserRepository.save(fundraiser);
 
-		return this.modelMapper.map(fundraiser, FundraiserDto.class);
+		return this.modelMapper.map(updated, FundraiserDto.class);
 	}
 
 //	patch update
@@ -134,11 +134,8 @@ public class FundraiserServiceImpl implements FundraiserService {
 				throw new ApiException("error updating fundraiser", HttpStatus.BAD_REQUEST, false);
 			}
 		}
-		System.out.println(fundraiser);
-		System.out.println("second last");
-		this.fundraiserRepository.save(fundraiser);
-		System.out.println("finally");
-		return this.modelMapper.map(fundraiser, FundraiserDto.class);
+		Fundraiser updated = this.fundraiserRepository.save(fundraiser);
+		return this.modelMapper.map(updated, FundraiserDto.class);
 	}
 
 //	delete

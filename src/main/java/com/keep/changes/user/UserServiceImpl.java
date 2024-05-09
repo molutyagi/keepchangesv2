@@ -12,6 +12,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -87,8 +89,9 @@ public class UserServiceImpl implements UserService {
 		User user = this.userRepository.findById(uId)
 				.orElseThrow(() -> new ResourceNotFoundException("User", "Id", uId));
 
-		user.setUpdateUser(uId, ud.getName(), ud.getEmail(), this.passwordEncoder.encode(ud.getPassword()),
-				ud.getPhone(), ud.getDisplayImage(), ud.getCoverImage(), ud.getAbout());
+		user.setUpdateUser(uId, ud.getName(), ud.getEmail().toLowerCase(),
+				this.passwordEncoder.encode(ud.getPassword()), ud.getPhone(), ud.getDisplayImage(), ud.getCoverImage(),
+				ud.getAbout());
 
 		User updatedUser = this.userRepository.save(user);
 		return this.modelMapper.map(updatedUser, UserDto.class);
@@ -117,10 +120,12 @@ public class UserServiceImpl implements UserService {
 						break;
 					}
 
-					System.out.println(field + " : field , value : " + value);
 					if (field.getName().equals("password")) {
-
 						value = this.passwordEncoder.encode(value.toString());
+					}
+
+					if (field.getName().equals("email")) {
+						value = value.toString().toLowerCase();
 					}
 
 					if (field.getName().equals("displayImage")) {
@@ -138,7 +143,7 @@ public class UserServiceImpl implements UserService {
 				throw new RuntimeException("error updating user", e);
 			}
 		}
-		User updatedUser = 	this.userRepository.save(user);
+		User updatedUser = this.userRepository.save(user);
 		return this.modelMapper.map(updatedUser, UserDto.class);
 	}
 
@@ -147,7 +152,7 @@ public class UserServiceImpl implements UserService {
 		User user = this.userRepository.findById(uId)
 				.orElseThrow(() -> new ResourceNotFoundException("User", "Id", uId));
 
-		user.setEmail(userDto.getEmail());
+		user.setEmail(userDto.getEmail().toLowerCase());
 		this.userRepository.save(user);
 		String accessToken = this.jwtService.generateAccessToken(user);
 		String refreshToken = this.jwtService.generateRefreshToken(user);
@@ -207,6 +212,15 @@ public class UserServiceImpl implements UserService {
 	}
 
 //	Get User
+
+//	Get currently logged in user
+	public UserDto getCurrentUser() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		User currentUser = (User) authentication.getPrincipal();
+
+		return this.modelMapper.map(currentUser, UserDto.class);
+	}
+
 //	By Id
 	@Override
 	@Transactional

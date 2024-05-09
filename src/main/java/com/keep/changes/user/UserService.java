@@ -29,6 +29,9 @@ public interface UserService {
 	boolean deleteCoverImage(long uId);
 
 //	Get Users
+
+	UserDto getCurrentUser();
+
 	UserDto getUserById(Long uId);
 
 	List<UserDto> getAllUsers();

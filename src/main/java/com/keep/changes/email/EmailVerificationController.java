@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.keep.changes.exception.ResourceAlreadyExistsException;
 import com.keep.changes.user.UserDto;
 import com.keep.changes.user.UserService;
 import com.keep.changes.user.token.TokenService;
@@ -28,7 +29,7 @@ public class EmailVerificationController {
 	private UserService userService;
 
 	@PostMapping("send-otp")
-	public ResponseEntity<?> sendOtp(@Valid @RequestBody OtpDto otpDto
+	public ResponseEntity<?> sendOtp(@Valid @RequestBody GetOtpDto getOtpDto
 //			, @RequestParam("action") String action
 	) {
 
@@ -41,7 +42,13 @@ public class EmailVerificationController {
 //			throw new ResourceAlreadyExistsException("User", "phone", otpDto.getPhone());
 //		}
 
-		this.emailService.sendEmail(otpDto.getEmail(), otpDto.getName(), EmailTemplateName.CONFIRM_EMAIL,
+		if (this.userService.emailExists(getOtpDto.getEmail())) {
+			throw new ResourceAlreadyExistsException("User", "Email", getOtpDto.getEmail());
+		}
+		if (this.userService.phoneExists(getOtpDto.getPhone())) {
+			throw new ResourceAlreadyExistsException("User", "Phone", getOtpDto.getPhone());
+		}
+		this.emailService.sendEmail(getOtpDto.getEmail(), getOtpDto.getName(), EmailTemplateName.CONFIRM_EMAIL,
 				"email-verification");
 //		} else if (action.equals("forgot-password")) {
 //			UserDto user = this.userService.getUserByEmail(email);
@@ -53,9 +60,9 @@ public class EmailVerificationController {
 	}
 
 	@PostMapping("verify-otp")
-	public ResponseEntity<?> verifyOtp(@Valid @RequestParam("email") String email, @RequestParam("otp") String otp) {
-
-		if (this.tokenService.verifyToken(otp, email)) {
+	public ResponseEntity<?> verifyOtp(@Valid @RequestBody VerifyOtpDto verifyOtpDto) {
+		System.out.println(verifyOtpDto.getOtp());
+		if (this.tokenService.verifyToken(verifyOtpDto.getOtp())) {
 			return ResponseEntity.ok("Email verified successfully");
 		}
 		return ResponseEntity.badRequest().body("OTP expired. Get a new OTP and retry again.");

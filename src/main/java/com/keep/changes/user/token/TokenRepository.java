@@ -13,8 +13,7 @@ public interface TokenRepository extends JpaRepository<Token, Long> {
 
 	Optional<Token> findByToken(String token);
 
-	@Query("SELECT t FROM Token t WHERE t.token = :tokenValue AND t.email = :email ORDER BY t.id DESC")
-	Optional<Token> findLatestTokenByEmailAndToken(@Param("email") String email,
-			@Param("tokenValue") String tokenValue);
+	@Query("SELECT t FROM Token t WHERE t.token = :tokenValue ORDER BY t.id DESC")
+	Optional<Token> findLatestTokenByToken(@Param("tokenValue") String tokenValue);
 
 }

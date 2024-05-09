@@ -33,10 +33,9 @@ public class TokenServiceImpl implements TokenService {
 	}
 
 	@Override
-	public Boolean verifyToken(String otp, String email) {
-		
-		System.out.println(email);
-		Token token = this.tokenRepository.findLatestTokenByEmailAndToken(email, otp)
+	public Boolean verifyToken(String otp) {
+
+		Token token = this.tokenRepository.findLatestTokenByToken(otp)
 				.orElseThrow(() -> new ResourceNotFoundException("email", "otp", otp));
 
 		if (token.getCreatedAt().isBefore(LocalDateTime.now()) && token.getVerified() != true) {

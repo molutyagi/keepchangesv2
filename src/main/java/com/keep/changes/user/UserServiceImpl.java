@@ -337,6 +337,24 @@ public class UserServiceImpl implements UserService {
 		return userDtos;
 	}
 
+//	check if email already exists
+	public boolean emailExists(String email) {
+		Optional<User> byEmail = this.userRepository.findByEmail(email);
+		if (byEmail.isPresent()) {
+			return true;
+		}
+		return false;
+	}
+
+//	check if email already exists
+	public boolean phoneExists(String phone) {
+		Optional<User> byPhone = this.userRepository.findByPhone(phone);
+		if (byPhone.isPresent()) {
+			return true;
+		}
+		return false;
+	}
+
 //	delete if previous profile exists
 	private boolean hasPreviousProfile(User user) {
 

@@ -4,7 +4,7 @@ public interface TokenService {
 
 	String generateAndSaveActivationToken(String email);
 
-	Boolean verifyToken(String otp, String email);
+	Boolean verifyToken(String otp);
 
 	void deleteToken(Long tId);
 

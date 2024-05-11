@@ -18,7 +18,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("api/auth/")
+@RequestMapping("auth/")
 public class AuthController {
 
 	@Autowired

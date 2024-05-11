@@ -16,7 +16,7 @@ import com.keep.changes.user.token.TokenService;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("api/auth/verification")
+@RequestMapping("auth/verification")
 public class EmailVerificationController {
 
 	@Autowired

@@ -37,7 +37,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("users")
+@RequestMapping("api/users")
 public class UserController {
 
 	@Autowired

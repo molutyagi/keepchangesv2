@@ -45,7 +45,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("fundraisers")
+@RequestMapping("api/fundraisers")
 public class FundraiserController {
 
 	@Autowired

@@ -1,6 +1,7 @@
 package com.keep.changes.email;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -8,7 +9,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.keep.changes.exception.ApiException;
 import com.keep.changes.exception.ResourceAlreadyExistsException;
+import com.keep.changes.payload.response.ApiResponse;
 import com.keep.changes.user.UserDto;
 import com.keep.changes.user.UserService;
 import com.keep.changes.user.token.TokenService;
@@ -16,7 +19,7 @@ import com.keep.changes.user.token.TokenService;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("auth/verification")
+@RequestMapping("api/auth/verification")
 public class EmailVerificationController {
 
 	@Autowired
@@ -56,16 +59,16 @@ public class EmailVerificationController {
 //
 //		}
 
-		return ResponseEntity.ok("OTP sent to your mail successfully");
+		return ResponseEntity.ok(new ApiResponse("OTP sent to your mail successfully", true));
 	}
 
 	@PostMapping("verify-otp")
 	public ResponseEntity<?> verifyOtp(@Valid @RequestBody VerifyOtpDto verifyOtpDto) {
 		System.out.println(verifyOtpDto.getOtp());
 		if (this.tokenService.verifyToken(verifyOtpDto.getOtp())) {
-			return ResponseEntity.ok("Email verified successfully");
+			return ResponseEntity.ok(new ApiResponse("Email verified successfully", true));
 		}
-		return ResponseEntity.badRequest().body("OTP expired. Get a new OTP and retry again.");
+		throw new ApiException("OTP expired. Get a new OTP and retry again.", HttpStatus.BAD_REQUEST, false);
 	}
 
 	@PostMapping("reset-password")
@@ -76,6 +79,6 @@ public class EmailVerificationController {
 		user.setPassword(password);
 		this.userService.patchUpdateUser(user.getId(), user);
 
-		return ResponseEntity.ok("Password updated successfully");
+		return ResponseEntity.ok(new ApiResponse("Password updated successfully", true));
 	}
 }

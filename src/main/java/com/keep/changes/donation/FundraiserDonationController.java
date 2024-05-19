@@ -26,7 +26,7 @@ import com.keep.changes.user.UserDto;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("")
+@RequestMapping("api")
 public class FundraiserDonationController {
 
 	@Autowired

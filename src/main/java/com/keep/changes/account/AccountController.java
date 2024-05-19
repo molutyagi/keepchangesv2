@@ -32,7 +32,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("accounts")
+@RequestMapping("api/accounts")
 @RequiredArgsConstructor
 public class AccountController {
 
@@ -62,7 +62,7 @@ public class AccountController {
 		try {
 			accountDto = this.objectMapper.readValue(accountData, AccountDto.class);
 		} catch (JsonProcessingException e) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Request!");
+			throw new ApiException("Invalid Request Data! Kindly enter valid data.", HttpStatus.BAD_REQUEST, false);
 		}
 
 		FundraiserDto fundraiserDto = this.fundraiserService.getFundraiserById(fId);

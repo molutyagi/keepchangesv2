@@ -53,6 +53,7 @@ public class EmailVerificationController {
 		}
 		this.emailService.sendEmail(getOtpDto.getEmail(), getOtpDto.getName(), EmailTemplateName.CONFIRM_EMAIL,
 				"email-verification");
+
 //		} else if (action.equals("forgot-password")) {
 //			UserDto user = this.userService.getUserByEmail(email);
 //			this.emailService.sendEmail(email, user.getName(), EmailTemplateName.RESET_PASSWORD, "reset-password");

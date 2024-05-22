@@ -32,6 +32,7 @@ public class AuthController {
 
 		AuthenticationResponse responseTokens = null;
 		try {
+			System.out.println("in login");
 			responseTokens = this.authenticationService.login(authenticationRequest);
 		} catch (AuthenticationException e) {
 			throw new ApiException("An error occured logging you. Kindly recheck your credentials and try again.",

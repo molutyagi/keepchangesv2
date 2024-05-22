@@ -29,7 +29,7 @@ import lombok.RequiredArgsConstructor;
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
-@EnableMethodSecurity(securedEnabled = true)
+@EnableMethodSecurity(securedEnabled = true, prePostEnabled = true)
 public class SecurityConfig {
 
 	private static final String[] ADMIN_ONLY_URLS = { "api/admin/**", "api/categories/**" };
@@ -48,7 +48,7 @@ public class SecurityConfig {
 
 	@Autowired
 	@Qualifier("delegatedAuthenticationEntryPoint")
-	AuthenticationEntryPoint authEntryPoint;
+	AuthenticationEntryPoint authenticationEntryPoint;
 
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -56,13 +56,15 @@ public class SecurityConfig {
 		return http.cors(Customizer.withDefaults()).csrf(AbstractHttpConfigurer::disable)
 				.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authenticationProvider(this.daoAuthenticationProviderBean())
-				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 				.authorizeHttpRequests((req) -> req.requestMatchers(PUBLIC_URLS).permitAll()
+						.requestMatchers(HttpMethod.GET, "api/categories/**").permitAll()
 						.requestMatchers(ADMIN_ONLY_URLS).hasRole("ADMIN")
-						.requestMatchers(HttpMethod.GET, "api/users/user/current/**").hasRole("USER")
-						.requestMatchers(HttpMethod.GET).permitAll().anyRequest().authenticated())
-				.userDetailsService(userDetailsServiceImpl).exceptionHandling(e -> e
-						.accessDeniedHandler(this.accessDeniedHandler).authenticationEntryPoint(this.authEntryPoint))
+						.requestMatchers(HttpMethod.GET, "api/users/user/me").hasRole("USER").anyRequest()
+						.authenticated())
+				.userDetailsService(userDetailsServiceImpl)
+				.exceptionHandling(e -> e.accessDeniedHandler(this.accessDeniedHandler)
+						.authenticationEntryPoint(this.authenticationEntryPoint))
+				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 				.httpBasic(Customizer.withDefaults()).build();
 	}
 

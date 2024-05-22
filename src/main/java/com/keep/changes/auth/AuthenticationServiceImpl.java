@@ -103,9 +103,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 		AuthenticationResponse response = new AuthenticationResponse();
 		response.setAccessToken(accessToken);
 		response.setRefreshToken(refreshToken);
-		response.setUserId(savedUser.getId());
-		response.setName(savedUser.getName());
-		response.setEmail(savedUser.getEmail());
 
 		return response;
 
@@ -118,7 +115,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 			this.authenticationManager.authenticate(
 					new UsernamePasswordAuthenticationToken(userRequest.getUsername(), userRequest.getPassword()));
 		} catch (BadCredentialsException e) {
-			throw new ApiException("Invalid Password. Enter correct password.", HttpStatus.BAD_REQUEST, false);
+			throw new ApiException("Invalid Password. Enter correct password.", HttpStatus.UNAUTHORIZED, false);
 		}
 
 		UserDetails userDetails = this.userDetailsService.loadUserByUsername(userRequest.getUsername());
@@ -132,9 +129,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 		AuthenticationResponse response = new AuthenticationResponse();
 		response.setAccessToken(accessToken);
 		response.setRefreshToken(refreshToken);
-		response.setUserId(user.getId());
-		response.setName(user.getName());
-		response.setEmail(user.getEmail());
 
 		return response;
 	}

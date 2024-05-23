@@ -6,6 +6,7 @@ import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,7 +43,10 @@ import com.keep.changes.payload.response.ApiResponse;
 import com.keep.changes.user.UserDto;
 
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
+import jakarta.validation.Validator;
 
 @RestController
 @RequestMapping("api/fundraisers")
@@ -67,6 +71,9 @@ public class FundraiserController {
 	private ObjectMapper objectMapper;
 
 	@Autowired
+	private Validator validator;
+
+	@Autowired
 	private FileService fileService;
 
 	@Value("${fundraiser-profile.images}")
@@ -87,18 +94,18 @@ public class FundraiserController {
 	public ResponseEntity<?> createFundraiser(
 			@Valid @RequestParam(value = "displayImage", required = false) MultipartFile displayImage,
 			@RequestParam(value = "fundraiserData", required = true) String fundraiserData,
-			@RequestParam(value = "categoryId", required = true) Long categoryId) {
+			@RequestParam(value = "categoryId", required = true) Long categoryId) throws IOException {
 
 //		verify and validate images
 		if (!this.verifyImage(displayImage)) {
-			throw new ApiException("Select valid image", HttpStatus.BAD_REQUEST, false);
+			throw new ApiException("Select valid image format. ", HttpStatus.BAD_REQUEST, false);
 		}
 
 		FundraiserDto fundraiserDto = new FundraiserDto();
 		FundraiserDto createdFundraiser = null;
 		String displayImageName;
 
-		System.out.println(fundraiserData);
+		System.out.println(fundraiserData + " category: " + categoryId);
 
 		// set json data to dto
 		try {
@@ -107,13 +114,20 @@ public class FundraiserController {
 			throw new ApiException("Invalid request data.", HttpStatus.BAD_REQUEST, false);
 		}
 
+		Set<ConstraintViolation<FundraiserDto>> violations = validator.validate(fundraiserDto);
+		if (!violations.isEmpty()) {
+			throw new ConstraintViolationException(violations);
+		}
+
+//		if(fundraiserDto.getEndDate().before(fundraiserDto.getStartDate().C))
+
 		// save and set display image
 		try {
 			displayImageName = this.fileService.uploadImage(displayImagePath, displayImage);
 			fundraiserDto.setDisplayPhoto(displayImageName);
 		} catch (IOException e) {
-			throw new ApiException("OOPS!! Something went wrong. Could not create fundraiser.", HttpStatus.BAD_REQUEST,
-					false);
+			System.out.println("yha se");
+			throw new IOException(e);
 		}
 
 		// get category
@@ -127,9 +141,9 @@ public class FundraiserController {
 			try {
 				this.fileService.deleteFile(displayImagePath, displayImageName);
 			} catch (IOException e1) {
-				throw new ApiException("OOPS!! Something went wrong. Could not create fundraiser.",
-						HttpStatus.INTERNAL_SERVER_ERROR, false);
+				throw new IOException();
 			}
+			e.printStackTrace();
 			throw new ApiException("OOPS!! Something went wrong. Could not create fundraiser.",
 					HttpStatus.INTERNAL_SERVER_ERROR, false);
 		}
@@ -155,8 +169,13 @@ public class FundraiserController {
 			try {
 				fundraiserDto = this.objectMapper.readValue(fundraiserData, FundraiserDto.class);
 			} catch (JsonProcessingException e) {
-				throw new ApiException("Invalid request!", HttpStatus.BAD_REQUEST, false);
+				throw new ApiException("Invalid request data!", HttpStatus.BAD_REQUEST, false);
 			}
+		}
+
+		Set<ConstraintViolation<FundraiserDto>> violations = validator.validate(fundraiserDto);
+		if (!violations.isEmpty()) {
+			throw new ConstraintViolationException(violations);
 		}
 
 		// save and set display image
@@ -170,8 +189,8 @@ public class FundraiserController {
 			}
 		}
 
+		// get category
 		if (categoryId != null) {
-			// get category
 			CategoryDto categoryDto = this.categoryService.getById(categoryId);
 			fundraiserDto.setCategory(categoryDto);
 		}
@@ -187,7 +206,7 @@ public class FundraiserController {
 				AccountDto account = this.accountService.addAccount(accountDto);
 				fundraiserDto.setAccount(account);
 			} catch (JsonProcessingException e) {
-				throw new ApiException("Invalid request!", HttpStatus.BAD_REQUEST, false);
+				throw new ApiException("Invalid request data!", HttpStatus.BAD_REQUEST, false);
 			}
 		}
 

@@ -36,7 +36,7 @@ public class FundraiserDto {
 	@NotEmpty
 	private String fundraiserDescription;
 
-	@NotEmpty
+//	@NotEmpty
 	private String cause;
 
 	@NonNull
@@ -50,13 +50,13 @@ public class FundraiserDto {
 	@Pattern(regexp = "^([a-zA-Z0-9._%-]{4,}+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})$", message = "Given email is not valid.")
 	private String email;
 
-//	@NotEmpty
-	@Pattern(regexp = "(0|91)?[6-9][0-9]{9}", message = "Invalid Number.")
+	@NotEmpty
+//	@Pattern(regexp = "(0|91)?[6-9][0-9]{9}", message = "Invalid Number Format.")
 	private String phone;
 
 	@JsonProperty(access = Access.READ_ONLY)
 	private Date startDate;
-	
+
 	@DateTimeFormat(pattern = "dd-MM-yyyy")
 	private Date endDate;
 

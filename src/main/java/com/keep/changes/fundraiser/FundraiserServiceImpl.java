@@ -18,6 +18,8 @@ import com.keep.changes.category.CategoryRepository;
 import com.keep.changes.exception.ApiException;
 import com.keep.changes.exception.ResourceNotFoundException;
 import com.keep.changes.file.FileService;
+import com.keep.changes.fundraiser.document.FundraiserDocument;
+import com.keep.changes.fundraiser.photo.Photo;
 import com.keep.changes.user.User;
 import com.keep.changes.user.UserRepository;
 
@@ -85,7 +87,7 @@ public class FundraiserServiceImpl implements FundraiserService {
 		Fundraiser fundraiser = this.fundraiserRepository.findById(fId)
 				.orElseThrow(() -> new ResourceNotFoundException("Fundraiser", "Id", fId));
 
-		fundraiser.putUpdateFundraiser(fId, fd.getFundraiserTitle(), fd.getFundraiserDescription(), fd.getCause(),
+		fundraiser.putUpdateFundraiser(fId, fd.getFundraiserTitle(), fd.getFundraiserDescription(), fd.getBeneficiary(),
 				fd.getRaiseGoal(), fd.getEmail(), fd.getPhone(), fd.getEndDate(), fd.getDisplayPhoto(),
 				fd.getCoverPhoto());
 
@@ -127,18 +129,32 @@ public class FundraiserServiceImpl implements FundraiserService {
 
 //	delete
 	@Override
-	@Transactional
+	@Transactional(rollbackOn = Exception.class)
 	public void deleteFundraiser(Long fId) {
 		Fundraiser fundraiser = this.fundraiserRepository.findById(fId)
 				.orElseThrow(() -> new ResourceNotFoundException("Fundraiser", "Id", fId));
 
 		try {
+//			delete display image from directory
 			this.hasPreviousDisplay(fundraiser);
+
+//			delete photos from directory
+			for (Photo photo : fundraiser.getPhotos()) {
+				this.fileService.deleteFile(null, photo.getPhotoUrl());
+			}
+
+//			delete documents from directory
+			for (FundraiserDocument document : fundraiser.getDocuments()) {
+				this.fileService.deleteFile(null, document.getDocumentUrl());
+			}
+
+//			delete fundraiser from db
 			this.fundraiserRepository.delete(fundraiser);
 		} catch (Exception e) {
 			throw new ApiException("OOPS!! Something went wrong. Could not delete fundraiser.",
 					HttpStatus.INTERNAL_SERVER_ERROR, false);
 		}
+
 	}
 
 	@Override
@@ -231,16 +247,6 @@ public class FundraiserServiceImpl implements FundraiserService {
 
 			fundraisers.addAll(fundraisersByUser);
 		}
-
-		return fundraiserToDto(fundraisers);
-	}
-
-//	by cause
-	@Override
-	@Transactional
-	public List<FundraiserDto> getFundraisersByCause(String cause) {
-
-		List<Fundraiser> fundraisers = this.fundraiserRepository.findByCauseContaining(cause);
 
 		return fundraiserToDto(fundraisers);
 	}

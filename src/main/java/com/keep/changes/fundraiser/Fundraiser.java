@@ -105,6 +105,9 @@ public class Fundraiser {
 
 	@OneToMany(mappedBy = "fundraiser", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private Set<Photo> photos = new HashSet<>();
+	
+	@OneToMany(mappedBy = "fundraiser", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	private Set<FundraiserDocument> documents = new HashSet<>();
 
 	@OneToMany(mappedBy = "fundraiser", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private Set<FundraiserDocument> documents = new HashSet<>();
